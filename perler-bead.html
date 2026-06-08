@@ -100,6 +100,12 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#1a1a2e;color:#eee;min-
 </div>
 
 <script>
+// ═══ 错误上报 ═══
+window.onerror=function(msg,url,line,col,err){
+  const pa=document.getElementById('previewArea');
+  if(pa)pa.innerHTML='<div style="color:#f44;padding:20px;background:#200;border-radius:8px;max-width:600px"><b>JS 错误</b><br>'+msg+'<br>行:'+line+' 列:'+col+(err&&err.stack?'<br><pre style="font-size:.7em;color:#f88">'+err.stack+'</pre>':'')+'</div>';
+};
+
 // ═══ 色板 ═══
 const BEAD_COLORS=[
   {name:"白色",hex:"#FFFFFF"},{name:"黑色",hex:"#1E1E1E"},{name:"灰色",hex:"#969696"},
