@@ -75,13 +75,13 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#1a1a2e;color:#eee;min-
 
   <div class="btn-row">
   <div class="param-group" style="padding:8px 10px">
-    <label>色板 <span class="val" id="paletteLabel">MARD 200色</span></label>
+    <label>色板 <span class="val" id="paletteLabel">MARD 96色</span></label>
     <select id="paletteSelect" style="width:100%;padding:6px;border-radius:6px;background:#0f3460;color:#eee;border:1px solid #444;font-size:.8em">
       <option value="auto">🤖 自动配色</option>
-      <option value="MARD 96色">🧶 MARD 96色</option>
+      <option value="MARD 96色" selected>🧶 MARD 96色</option>
       <option value="MARD 144色">🧶 MARD 144色</option>
       <option value="MARD 168色">🧶 MARD 168色</option>
-      <option value="MARD 200色" selected>🧶 MARD 200色</option>
+      <option value="MARD 200色">🧶 MARD 200色</option>
     </select>
   </div>
   </div>
@@ -1020,7 +1020,7 @@ const PALETTES={"MARD 96色":MARD_96,"MARD 144色":MARD_144,"MARD 168色":MARD_1
 
 // ═══ 状态 ═══
 const $=id=>document.getElementById(id);
-let sourceImg=null, aspectRatio=1, currentPalette=BEAD_COLORS;
+let sourceImg=null, aspectRatio=1, currentPalette=MARD_96;
 let gridData=null; // {w,h,indices,counts,palette,names,cell,bgCells}
 let editMode=false, eraseMode=false, editColor=null;
 let editHistory=[];
