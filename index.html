@@ -90,6 +90,7 @@ body{font-family:'Microsoft YaHei',sans-serif;background:#1a1a2e;color:#eee;min-
     <button class="btn secondary" id="btnEdit">✏️ 编辑</button>
     <button class="btn danger" id="btnErase">🧹 擦除</button>
     <button class="btn secondary" id="btnUndo">↩ 撤销</button>
+    <button class="btn outline active" id="btnLabels">📝 色号</button>
   </div>
   <div class="btn-row">
     <button class="btn primary" id="btnDownload">📥 下载PNG</button>
@@ -1024,6 +1025,7 @@ let gridData=null; // {w,h,indices,counts,palette,names,cell,bgCells}
 let editMode=false, eraseMode=false, editColor=null;
 let editHistory=[];
 let bgMarkedColors=new Set();
+let showLabels=true;
 
 // ═══ DOM ═══
 const uploadZone=$('uploadZone'), fileInput=$('fileInput'), thumb=$('thumb');
@@ -1101,6 +1103,7 @@ function saveSnap(){
   if(!gridData)return;
   editHistory.push({indices:new Uint8Array(gridData.indices),counts:[...gridData.counts],bgCells:new Set(gridData.bgCells||[])});
   if(editHistory.length>30)editHistory.shift()}
+$('btnLabels').addEventListener('click',()=>{showLabels=!showLabels;$('btnLabels').classList.toggle('active',showLabels);drawPreview()});
 $('btnUndo').addEventListener('click',()=>{
   if(!editHistory.length)return;const snap=editHistory.pop();
   gridData.indices=snap.indices;gridData.counts=snap.counts;gridData.bgCells=snap.bgCells||new Set();drawPreview()});
@@ -1200,6 +1203,18 @@ function drawPreview(){
     const idx=indices[y*w+x],[r,g,b]=palette[idx];
     ctx.fillStyle=bgCells&&bgCells.has(y*w+x)?`rgba(${r},${g},${b},0.25)`:`rgb(${r},${g},${b})`;
     ctx.fillRect(x*cell,y*cell,cell-1,cell-1)}}
+
+  if(showLabels&&cell>=16){
+    const fs=Math.max(7,Math.min(10,cell*0.38));
+    ctx.font='bold '+fs+'px Microsoft YaHei,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    for(let y=0;y<h;y++){for(let x=0;x<w;x++){
+      const idx=indices[y*w+x];if(bgCells&&bgCells.has(y*w+x))continue;
+      const[r,g,b]=palette[idx];const lum=r*0.299+g*0.587+b*0.114;
+      ctx.fillStyle=lum>150?'#000':'#fff';
+      ctx.fillText(names[idx],x*cell+cell/2,y*cell+cell/2);
+    }}
+  }
 
   for(let y=0;y<=h;y++){const tk=y%10===0?2:0.5;ctx.strokeStyle=y%10===0?'#999':'#ccc';ctx.lineWidth=tk;ctx.beginPath();ctx.moveTo(0,y*cell);ctx.lineTo(w*cell,y*cell);ctx.stroke()}
   for(let x=0;x<=w;x++){const tk=x%10===0?2:0.5;ctx.strokeStyle=x%10===0?'#999':'#ccc';ctx.lineWidth=tk;ctx.beginPath();ctx.moveTo(x*cell,0);ctx.lineTo(x*cell,h*cell);ctx.stroke()}
