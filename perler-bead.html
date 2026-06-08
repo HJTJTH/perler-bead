@@ -381,28 +381,40 @@ function render(){
   if(!sourceImg) return;
   const w=parseInt(gridW.value),h=parseInt(gridH.value);
   const k=parseInt(numColors.value);
-  const cell=Math.max(8,Math.min(40,800/Math.max(w,h)));
+  const cellSz=Math.max(8,Math.min(40,800/Math.max(w,h)));
   const cleanThreshold=parseInt(cleanLevel.value);
 
-  // 1. 缩放到网格 + 主导色提取
+  // 1. 缩放图片到适中尺寸，每格取主导色
+  const sampleScale=Math.max(2,Math.ceil(800/sourceImg.width)); // 每个格子至少2px采样
+  const sw=Math.min(sourceImg.width,w*sampleScale),sh=Math.min(sourceImg.height,h*sampleScale);
   const tmp=document.createElement('canvas');
-  tmp.width=sourceImg.width;tmp.height=sourceImg.height;
+  tmp.width=sw;tmp.height=sh;
   const tctx=tmp.getContext('2d');
-  tctx.drawImage(sourceImg,0,0);
-  const fullData=tctx.getImageData(0,0,sourceImg.width,sourceImg.height);
+  tctx.drawImage(sourceImg,0,0,sw,sh);
+  const imgData=tctx.getImageData(0,0,sw,sh);
 
-  const cellW=sourceImg.width/w,cellH=sourceImg.height/h;
+  const cellW=sw/w,cellH=sh/h;
   const pixels=[];
   for(let y=0;y<h;y++){
     for(let x=0;x<w;x++){
       const x0=Math.floor(x*cellW),y0=Math.floor(y*cellH);
-      const x1=Math.floor((x+1)*cellW),y1=Math.floor((y+1)*cellH);
-      pixels.push(dominantColor(fullData,x0,y0,Math.max(x0+1,x1),Math.max(y0+1,y1)));
+      const x1=Math.max(x0+1,Math.floor((x+1)*cellW)),y1=Math.max(y0+1,Math.floor((y+1)*cellH));
+      // 区域内主导色
+      const hist={};let maxC=0, best=[0,0,0];
+      for(let py=y0;py<y1;py++){
+        for(let px=x0;px<x1;px++){
+          const i=(py*sw+px)*4;
+          const k2=`${imgData.data[i]},${imgData.data[i+1]},${imgData.data[i+2]}`;
+          hist[k2]=(hist[k2]||0)+1;
+          if(hist[k2]>maxC){maxC=hist[k2];best=[imgData.data[i],imgData.data[i+1],imgData.data[i+2]]}
+        }
+      }
+      pixels.push(best);
     }
   }
 
   // 2. 颜色量化
-  let palette,rgbPalette,names;
+  let rgbPalette,names;
   if(currentPalette){
     rgbPalette=currentPalette.map(c=>hexToRgb(c.hex));
     names=currentPalette.map(c=>c.name);
@@ -429,7 +441,7 @@ function render(){
   for(const idx of indices) counts[idx]++;
 
   // 6. 存数据
-  gridData={w,h,indices,palette:rgbPalette,names,counts,cell,bgCells:new Set(),rawPalette:rgbPalette};
+  gridData={w,h,indices,palette:rgbPalette,names,counts,cell:cellSz,bgCells:new Set(),rawPalette:rgbPalette};
   bgMarkedColors.clear();editHistory=[];bgRemovalSnapshot=null;
 
   drawPreview();
@@ -524,7 +536,9 @@ function drawPreview(){
     item.addEventListener('click',e=>{
       const colorIdx=parseInt(item.dataset.colorIdx);
       if(editMode){
-        editColor=colorIdx;$('btnEdit').style.background=gridData.palette[colorIdx].map(c=>Math.min(255,c+40)).join(',')?'rgb('+gridData.palette[colorIdx].join(',')+')':'#e94560';
+        editColor=colorIdx;
+        const [r,g,b]=gridData.palette[colorIdx];
+        $('btnEdit').style.background=`rgb(${r},${g},${b})`;
       }
     });
     item.addEventListener('contextmenu',e=>{
