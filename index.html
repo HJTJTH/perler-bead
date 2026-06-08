@@ -3,96 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>图片转拼豆/十字绣图纸</title>
+<title>图片转拼豆图纸</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-  background: #1a1a2e;
-  color: #eee;
-  min-height: 100vh;
-  display: flex;
-}
-/* ── 左侧控制面板 ── */
-.panel {
-  width: 320px;
-  min-width: 320px;
-  background: #16213e;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  max-height: 100vh;
-}
-.panel h1 { font-size: 1.3em; text-align: center; color: #e94560; }
-/* 上传区 */
-.upload-zone {
-  border: 2px dashed #555;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: .2s;
-  background: #0f3460;
-}
-.upload-zone:hover, .upload-zone.drag { border-color: #e94560; background: #1a3a6e; }
-.upload-zone .icon { font-size: 2em; }
-.upload-zone .hint { font-size: .8em; color: #888; margin-top: 4px; }
-.upload-zone img { max-width:100%; max-height:120px; border-radius:8px; margin-top:8px; }
-/* 参数区 */
-.param-group { background:#0f3460; border-radius:8px; padding:12px; }
-.param-group label { display:flex; justify-content:space-between; align-items:center; font-size:.85em; margin-bottom:6px; }
-.param-group label span.val { color:#e94560; font-weight:bold; min-width:28px; text-align:right; }
-.param-group input[type=range] { width:100%; accent-color:#e94560; }
-.aspect-row { display:flex; align-items:center; gap:8px; font-size:.8em; margin-top:4px; }
-.aspect-row input[type=checkbox] { accent-color:#e94560; }
-/* 按钮 */
-.btn-row { display:flex; gap:8px; flex-wrap:wrap; }
-.btn {
-  flex:1; min-width:80px; padding:10px 14px; border:none; border-radius:8px;
-  cursor:pointer; font-size:.85em; font-weight:bold; transition:.15s;
-  text-align:center;
-}
-.btn.primary { background:#e94560; color:#fff; }
-.btn.primary:hover { background:#ff6b81; }
-.btn.secondary { background:#0f3460; color:#ccc; border:1px solid #444; }
-.btn.secondary:hover { background:#1a4a80; }
-.btn.outline { background:transparent; color:#e94560; border:1px solid #e94560; }
-.btn.outline:hover { background:#e9456020; }
-.btn.active { background:#e94560 !important; color:#fff !important; }
-/* ── 右侧预览区 ── */
-.preview-area {
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  overflow:auto;
-}
-.preview-area .empty { color:#555; font-size:1.2em; text-align:center; }
-.preview-area canvas { border:1px solid #333; border-radius:4px; box-shadow: 0 4px 24px rgba(0,0,0,.5); max-width:95vw; max-height:70vh; }
-/* 图例 */
-.legend {
-  display:flex; flex-wrap:wrap; gap:4px; margin-top:12px;
-  max-width:800px; justify-content:center;
-}
-.legend-item {
-  display:flex; align-items:center; gap:4px; font-size:.75em;
-  background:#0f3460; padding:3px 8px; border-radius:4px;
-}
-.legend-item .swatch { width:14px; height:14px; border-radius:2px; border:1px solid #444; }
-/* 信息条 */
-.info-bar { font-size:.78em; color:#888; margin-top:6px; text-align:center; }
-/* 响应式 */
-@media (max-width:700px) { body { flex-direction:column; } .panel { width:100%; min-width:auto; max-height:none; } }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:#1a1a2e;color:#eee;min-height:100vh;display:flex}
+.panel{width:320px;min-width:320px;background:#16213e;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:100vh}
+.panel h1{font-size:1.2em;text-align:center;color:#e94560}
+.upload-zone{border:2px dashed #555;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:.2s;background:#0f3460}
+.upload-zone:hover,.upload-zone.drag{border-color:#e94560;background:#1a3a6e}
+.upload-zone .icon{font-size:2em}
+.upload-zone .hint{font-size:.75em;color:#888;margin-top:4px}
+.upload-zone img{max-width:100%;max-height:100px;border-radius:8px;margin-top:8px}
+.param-group{background:#0f3460;border-radius:8px;padding:10px}
+.param-group label{display:flex;justify-content:space-between;align-items:center;font-size:.82em;margin-bottom:4px}
+.param-group label span.val{color:#e94560;font-weight:bold;min-width:26px;text-align:right}
+.param-group input[type=range]{width:100%;accent-color:#e94560}
+.aspect-row{display:flex;align-items:center;gap:8px;font-size:.78em;margin-top:4px}
+.aspect-row input[type=checkbox]{accent-color:#e94560}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.btn{flex:1;min-width:70px;padding:8px 10px;border:none;border-radius:8px;cursor:pointer;font-size:.8em;font-weight:bold;transition:.15s;text-align:center}
+.btn.primary{background:#e94560;color:#fff}
+.btn.primary:hover{background:#ff6b81}
+.btn.secondary{background:#0f3460;color:#ccc;border:1px solid #444}
+.btn.secondary:hover{background:#1a4a80}
+.btn.outline{background:transparent;color:#e94560;border:1px solid #e94560}
+.btn.outline:hover{background:#e9456020}
+.btn.active{background:#e94560!important;color:#fff!important}
+.btn.warn{background:#f0a040;color:#000}
+.btn.warn:hover{background:#f5c060}
+.btn.danger{background:#a04040;color:#fff}
+.btn.danger:hover{background:#c06060}
+.btn.green{background:#32a852;color:#fff}
+.btn.green:hover{background:#40c860}
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto}
+.preview-area .empty{color:#555;font-size:1.1em;text-align:center}
+.preview-area canvas{border:1px solid #333;border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,.5);max-width:95vw;max-height:60vh;cursor:default}
+.preview-area canvas.editing{cursor:crosshair}
+.legend{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px;max-width:800px;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.72em;background:#0f3460;padding:3px 7px;border-radius:4px;cursor:pointer;user-select:none}
+.legend-item:hover{background:#1a4a80}
+.legend-item.bg-marked{opacity:.3;text-decoration:line-through}
+.legend-item .swatch{width:13px;height:13px;border-radius:2px;border:1px solid #444}
+.legend-item .count{color:#aaa}
+.info-bar{font-size:.75em;color:#888;margin-top:4px;text-align:center}
+.tool-sep{width:1px;background:#333;margin:0 4px}
+@media(max-width:700px){body{flex-direction:column}.panel{width:100%;min-width:auto;max-height:none}}
 </style>
 </head>
 <body>
 
 <div class="panel">
-  <h1>🧶 拼豆 / 十字绣图纸生成器</h1>
+  <h1>🧶 拼豆图纸生成器</h1>
 
   <div class="upload-zone" id="uploadZone">
     <div class="icon">📁</div>
@@ -108,84 +69,47 @@ body {
     <label>高度（颗） <span class="val" id="hVal">40</span></label>
     <input type="range" id="gridH" min="8" max="120" value="40">
     <div class="aspect-row">
-      <input type="checkbox" id="lockAspect" checked> 锁定原图比例
+      <input type="checkbox" id="lockAspect" checked> 锁定比例
+      <span style="margin-left:auto">颜色 <span class="val" id="cVal">20</span></span>
     </div>
-    <label>颜色数 <span class="val" id="cVal">20</span></label>
-    <input type="range" id="numColors" min="4" max="60" value="20">
-    <label>单元格像素 <span class="val" id="sVal">24</span></label>
-    <input type="range" id="cellSize" min="12" max="48" value="24" step="2">
-  </div>
-
-  <div class="param-group">
-    <div style="font-size:.85em;margin-bottom:6px;">图纸模式</div>
-    <label style="justify-content:flex-start;gap:8px;">
-      <input type="radio" name="mode" value="color" checked> 🎨 色块（拼豆）
-    </label>
-    <label style="justify-content:flex-start;gap:8px;">
-      <input type="radio" name="mode" value="symbol"> 🔤 符号（十字绣）
-    </label>
-    <label style="justify-content:flex-start;gap:8px;">
-      <input type="radio" name="mode" value="both"> 🎨+🔤 色块+符号
-    </label>
+    <input type="range" id="numColors" min="4" max="60" value="20" style="margin-top:4px">
+    <label style="margin-top:6px">杂色清理 <span class="val" id="clVal">30</span></label>
+    <input type="range" id="cleanLevel" min="0" max="60" value="30">
   </div>
 
   <div class="btn-row">
-    <button class="btn primary" id="btnDownload">📥 下载 PNG</button>
-    <button class="btn secondary" id="btnPrint">🖨️ 打印</button>
-  </div>
-  <div class="btn-row">
-    <button class="btn outline" id="btnAuto">🤖 自动配色</button>
-    <button class="btn outline" id="btnDMC">🎨 DMC线号</button>
+    <button class="btn outline active" id="btnAuto">🤖 自动配色</button>
     <button class="btn outline" id="btnBead">🧶 拼豆色</button>
   </div>
+
+  <div class="btn-row">
+    <button class="btn secondary" id="btnEdit">✏️ 编辑模式</button>
+    <button class="btn danger" id="btnErase">🧹 擦除</button>
+    <button class="btn secondary" id="btnUndo">↩ 撤销</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" id="btnDownload">📥 下载图纸</button>
+    <button class="btn green" id="btnShopList">🛒 采购清单</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn secondary" id="btnPrint">🖨️ 打印</button>
+    <button class="btn warn" id="btnRemoveBg">🔲 去背景</button>
+  </div>
+
   <div class="info-bar" id="infoBar">请先上传图片</div>
+  <div class="info-bar" id="editHint" style="color:#f0a040;display:none">编辑模式：点击格子换色 | 右键/擦除模式删除格子</div>
 </div>
 
 <div class="preview-area" id="previewArea">
   <div class="empty">
-    <div style="font-size:4em;">🧶</div>
+    <div style="font-size:4em">🧶</div>
     <div>上传图片后在此预览</div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-// 颜色板
-// ═══════════════════════════════════════════
-const DMC_COLORS = [
-  {name:"310 黑", hex:"#1C1C1C"},{name:"B5200 雪白", hex:"#F5F5F5"},{name:"White 白", hex:"#FAFAFA"},
-  {name:"Ecru 米白", hex:"#F0EAD6"},{name:"822 浅灰", hex:"#E8E3D9"},{name:"644 灰褐", hex:"#D8CFC0"},
-  {name:"642 深灰褐", hex:"#C8BBA4"},{name:"640 灰棕", hex:"#A5997D"},{name:"3787 深棕", hex:"#5E4E3C"},
-  {name:"3021 深褐", hex:"#4E3A2E"},{name:"938 咖啡", hex:"#3D2B1F"},{name:"3371 黑褐", hex:"#2B1F1A"},
-  {name:"321 圣诞红", hex:"#C72A2A"},{name:"666 亮红", hex:"#E02A3C"},{name:"304 中红", hex:"#C0163E"},
-  {name:"815 石榴红", hex:"#8C1232"},{name:"814 深红", hex:"#8C002C"},{name:"498 暗红", hex:"#A5122F"},
-  {name:"3705 西瓜红", hex:"#E85464"},{name:"3706 蜜桃", hex:"#E8846C"},{name:"351 珊瑚", hex:"#E8545E"},
-  {name:"353 蜜桃粉", hex:"#F4A89A"},{name:"352 浅珊瑚", hex:"#FCD4C3"},{name:"963 浅粉", hex:"#FCD4DC"},
-  {name:"3716 淡粉", hex:"#FCDCE5"},{name:"818 婴儿粉", hex:"#FCE8EE"},{name:"605 奶油", hex:"#FCE8D0"},
-  {name:"967 杏色", hex:"#FCDCC0"},{name:"945 肤色", hex:"#FCD4A0"},{name:"3770 深肤", hex:"#FCE8C8"},
-  {name:"950 浅肤", hex:"#FCE0C0"},{name:"3865 冬白", hex:"#FCFAF5"},{name:"712 奶白", hex:"#FCF8EC"},
-  {name:"739 沙色", hex:"#F8ECD8"},{name:"738 浅棕", hex:"#E8D4A8"},{name:"437 深沙", hex:"#C8A870"},
-  {name:"436 黄褐", hex:"#C09858"},{name:"435 深黄褐", hex:"#A87040"},{name:"434 浅褐", hex:"#987048"},
-  {name:"433 中褐", hex:"#885830"},{name:"801 深咖", hex:"#684420"},{name:"898 极深咖", hex:"#583820"},
-  {name:"3820 向日葵", hex:"#FCD860"},{name:"972 深金黄", hex:"#FCC830"},{name:"973 亮黄", hex:"#FCE830"},
-  {name:"307 柠檬黄", hex:"#FCE838"},{name:"445 浅黄", hex:"#FCF8A0"},{name:"3078 奶油黄", hex:"#FCF8B0"},
-  {name:"727 淡黄", hex:"#FCF0A0"},{name:"726 浅黄绿", hex:"#FCE870"},{name:"725 中黄", hex:"#FCD460"},
-  {name:"444 深黄", hex:"#FCC800"},{name:"742 橘黄", hex:"#FCA820"},{name:"741 亮橘", hex:"#FC9418"},
-  {name:"740 橘色", hex:"#FC7C18"},{name:"970 深橘", hex:"#FC5C18"},{name:"971 红橘", hex:"#FC4C18"},
-  {name:"947 亮橙", hex:"#FC3C18"},{name:"946 中橙", hex:"#FC2818"},{name:"900 深橙", hex:"#D02010"},
-  {name:"3348 苹果绿", hex:"#C8F060"},{name:"3347 中绿", hex:"#70C040"},{name:"3346 草绿", hex:"#48A830"},
-  {name:"3345 深草绿", hex:"#207830"},{name:"935 暗绿", hex:"#185828"},{name:"934 黑绿", hex:"#103820"},
-  {name:"701 圣诞绿", hex:"#208040"},{name:"700 亮绿", hex:"#187830"},{name:"702 凯利绿", hex:"#38A838"},
-  {name:"703 黄绿", hex:"#78C030"},{name:"704 亮黄绿", hex:"#98D030"},{name:"699 圣诞绿", hex:"#186828"},
-  {name:"909 翡翠绿", hex:"#88D8B0"},{name:"911 中翡翠", hex:"#48B880"},{name:"913 蓝绿", hex:"#70C8B0"},
-  {name:"995 电光蓝", hex:"#2898D0"},{name:"996 中电蓝", hex:"#40B8F0"},{name:"3843 电蓝", hex:"#2098E0"},
-  {name:"799 代尔夫蓝", hex:"#4890C0"},{name:"798 深代尔夫", hex:"#3870A0"},{name:"797 皇家蓝", hex:"#205890"},
-  {name:"796 深皇家", hex:"#184878"},{name:"820 深蓝", hex:"#183860"},{name:"939 海军蓝", hex:"#102840"},
-  {name:"550 紫罗兰", hex:"#582878"},{name:"552 中紫", hex:"#683890"},{name:"553 亮紫", hex:"#7848A8"},
-  {name:"554 浅紫", hex:"#9878C0"},{name:"210 淡紫", hex:"#B898D8"},{name:"211 浅薰衣", hex:"#C8B0E0"},
-  {name:"209 薰衣草", hex:"#C8A0D8"},{name:"208 深薰衣", hex:"#A870C0"},
-];
-
+// ═══════════ 拼豆标准色板 ═══════════
 const BEAD_COLORS = [
   {name:"白色", hex:"#FFFFFF"},{name:"黑色", hex:"#1E1E1E"},{name:"灰色", hex:"#969696"},
   {name:"深灰", hex:"#5A5A5A"},{name:"浅棕", hex:"#C8AA8C"},{name:"棕色", hex:"#96643C"},
@@ -198,327 +122,508 @@ const BEAD_COLORS = [
   {name:"肤色", hex:"#FFD2AA"},{name:"金色", hex:"#FFC800"},{name:"银色", hex:"#C0C0C0"},
 ];
 
-// ═══════════════════════════════════════════
-// 状态
-// ═══════════════════════════════════════════
-let sourceImg = null;
-let currentPalette = null; // null = auto quantize
-let aspectRatio = 1;
-let paletteMode = 'auto'; // 'auto' | 'dmc' | 'bead'
+// ═══════════ 全局状态 ═══════════
+const $=id=>document.getElementById(id);
+let sourceImg=null, aspectRatio=1, currentPalette=null, paletteMode='auto';
+let gridData=null; // {w,h,indices:Uint8Array,palette:[[r,g,b],...],names:[],cell}
+let editMode=false, eraseMode=false, editColor=null;
+let editHistory=[], bgRemovalSnapshot=null;
+let bgMarkedColors=new Set(); // colors marked as background
 
-// ═══════════════════════════════════════════
-// DOM
-// ═══════════════════════════════════════════
-const $ = id => document.getElementById(id);
-const uploadZone = $('uploadZone');
-const fileInput = $('fileInput');
-const thumb = $('thumb');
-const previewArea = $('previewArea');
-const infoBar = $('infoBar');
-const gridW = $('gridW'), gridH = $('gridH');
-const lockAspect = $('lockAspect');
-const numColors = $('numColors');
-const cellSize = $('cellSize');
+// ═══════════ DOM refs ═══════════
+const uploadZone=$('uploadZone'),fileInput=$('fileInput'),thumb=$('thumb');
+const previewArea=$('previewArea'),infoBar=$('infoBar'),editHint=$('editHint');
+const gridW=$('gridW'),gridH=$('gridH'),lockAspect=$('lockAspect');
+const numColors=$('numColors'),cleanLevel=$('cleanLevel');
 
-// ═══════════════════════════════════════════
-// 上传
-// ═══════════════════════════════════════════
-uploadZone.addEventListener('click', () => fileInput.click());
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadZone.classList.remove('drag');
-  const f = e.dataTransfer.files[0];
-  if (f) loadImage(f);
+// ═══════════ 上传 ═══════════
+uploadZone.addEventListener('click',()=>fileInput.click());
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop',e=>{
+  e.preventDefault();uploadZone.classList.remove('drag');
+  const f=e.dataTransfer.files[0];if(f) loadImage(f);
 });
-fileInput.addEventListener('change', () => {
-  const f = fileInput.files[0];
-  if (f) loadImage(f);
-});
+fileInput.addEventListener('change',()=>{const f=fileInput.files[0];if(f) loadImage(f)});
 
-function loadImage(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      sourceImg = img;
-      aspectRatio = img.width / img.height;
-      thumb.src = e.target.result;
-      thumb.style.display = 'block';
-      if (lockAspect.checked) {
-        gridH.value = Math.max(8, Math.round(gridW.value / aspectRatio));
-        $('hVal').textContent = gridH.value;
-      }
-      render();
+function loadImage(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      sourceImg=img;aspectRatio=img.width/img.height;
+      thumb.src=e.target.result;thumb.style.display='block';
+      if(lockAspect.checked){gridH.value=Math.max(8,Math.round(gridW.value/aspectRatio));$('hVal').textContent=gridH.value}
+      editHistory=[];bgRemovalSnapshot=null;bgMarkedColors.clear();
+      exitEditMode();render();
     };
-    img.src = e.target.result;
+    img.src=e.target.result;
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(file);
 }
 
-// ═══════════════════════════════════════════
-// 交互
-// ═══════════════════════════════════════════
-const sliders = [gridW, gridH, numColors, cellSize];
-sliders.forEach(s => {
-  s.addEventListener('input', () => {
-    $('wVal').textContent = gridW.value;
-    $('hVal').textContent = gridH.value;
-    $('cVal').textContent = numColors.value;
-    $('sVal').textContent = cellSize.value;
-    if (lockAspect.checked && (s === gridW || s === gridH)) {
-      if (s === gridW) { gridH.value = Math.max(8, Math.round(gridW.value / aspectRatio)); $('hVal').textContent = gridH.value; }
-      else { gridW.value = Math.max(8, Math.round(gridH.value * aspectRatio)); $('wVal').textContent = gridW.value; }
+// ═══════════ 滑块 ═══════════
+[gridW,gridH,numColors,cleanLevel].forEach(s=>{
+  s.addEventListener('input',()=>{
+    $('wVal').textContent=gridW.value;$('hVal').textContent=gridH.value;
+    $('cVal').textContent=numColors.value;$('clVal').textContent=cleanLevel.value;
+    if(lockAspect.checked&&(s===gridW||s===gridH)){
+      if(s===gridW){gridH.value=Math.max(8,Math.round(gridW.value/aspectRatio));$('hVal').textContent=gridH.value}
+      else{gridW.value=Math.max(8,Math.round(gridH.value*aspectRatio));$('wVal').textContent=gridW.value}
     }
     render();
   });
 });
-
-lockAspect.addEventListener('change', () => {
-  if (lockAspect.checked && sourceImg) {
-    gridH.value = Math.max(8, Math.round(gridW.value / aspectRatio));
-    $('hVal').textContent = gridH.value;
-    render();
-  }
+lockAspect.addEventListener('change',()=>{
+  if(lockAspect.checked&&sourceImg){gridH.value=Math.max(8,Math.round(gridW.value/aspectRatio));$('hVal').textContent=gridH.value;render()}
 });
 
-document.querySelectorAll('input[name="mode"]').forEach(r => {
-  r.addEventListener('change', render);
+// ═══════════ 色板按钮 ═══════════
+function setPaletteMode(mode){
+  paletteMode=mode;
+  currentPalette=(mode==='bead')?BEAD_COLORS:null;
+  ['btnAuto','btnBead'].forEach(id=>$(id).classList.remove('active'));
+  if(mode==='auto')$('btnAuto').classList.add('active');
+  else $('btnBead').classList.add('active');
+  if(sourceImg) render();
+}
+$('btnAuto').addEventListener('click',()=>setPaletteMode('auto'));
+$('btnBead').addEventListener('click',()=>setPaletteMode('bead'));
+
+// ═══════════ 编辑/擦除/撤销 ═══════════
+function exitEditMode(){
+  editMode=false;eraseMode=false;editColor=null;
+  $('btnEdit').classList.remove('active');$('btnErase').classList.remove('active');
+  editHint.style.display='none';
+  const c=previewArea.querySelector('canvas');if(c)c.classList.remove('editing');
+}
+$('btnEdit').addEventListener('click',()=>{
+  if(!gridData)return;
+  editMode=!editMode;eraseMode=false;
+  $('btnEdit').classList.toggle('active',editMode);
+  $('btnErase').classList.remove('active');
+  editHint.style.display=editMode?'block':'none';
+  const c=previewArea.querySelector('canvas');if(c)c.classList.toggle('editing',editMode);
+});
+$('btnErase').addEventListener('click',()=>{
+  if(!gridData)return;
+  eraseMode=!eraseMode;editMode=false;
+  $('btnErase').classList.toggle('active',eraseMode);
+  $('btnEdit').classList.remove('active');
+  editHint.style.display=eraseMode?'block':'none';
+  const c=previewArea.querySelector('canvas');if(c)c.classList.toggle('editing',eraseMode);
+});
+$('btnUndo').addEventListener('click',()=>{
+  if(!editHistory.length) return;
+  const snap=editHistory.pop();
+  gridData.indices=snap.indices;
+  gridData.counts=snap.counts;
+  gridData.bgCells=snap.bgCells||new Set();
+  drawPreview();
+});
+$('btnRemoveBg').addEventListener('click',()=>{
+  if(!gridData) return;
+  saveSnapshot();
+  removeBackground();
+  drawPreview();
 });
 
-// 色板按钮
-function setPaletteMode(mode) {
-  paletteMode = mode;
-  if (mode === 'dmc') currentPalette = DMC_COLORS;
-  else if (mode === 'bead') currentPalette = BEAD_COLORS;
-  else currentPalette = null;
-  // 更新按钮状态
-  ['btnAuto','btnDMC','btnBead'].forEach(id => $(id).classList.remove('active'));
-  if (mode === 'auto') $('btnAuto').classList.add('active');
-  else if (mode === 'dmc') $('btnDMC').classList.add('active');
-  else if (mode === 'bead') $('btnBead').classList.add('active');
-  if (sourceImg) render();
+// ═══════════ 快照 ═══════════
+function saveSnapshot(){
+  if(!gridData)return;
+  editHistory.push({
+    indices:new Uint8Array(gridData.indices),
+    counts:[...gridData.counts],
+    bgCells:new Set(gridData.bgCells||[])
+  });
+  if(editHistory.length>50) editHistory.shift();
 }
 
-$('btnAuto').classList.add('active');
-$('btnAuto').addEventListener('click', () => setPaletteMode('auto'));
-$('btnDMC').addEventListener('click', () => setPaletteMode('dmc'));
-$('btnBead').addEventListener('click', () => setPaletteMode('bead'));
+// ═══════════ 核心算法 ═══════════
+function hexToRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
 
-// ═══════════════════════════════════════════
-// 渲染核心
-// ═══════════════════════════════════════════
-const SYMBOLS = ['●','○','◆','◇','▲','△','■','□','★','☆','♦','♢','♥','♡','⏺','⬟','⬠','⬡','⬢','⬣',
-  '+','×','◎','◉','◈','◇','▣','▤','▥','▦','▧','▨','▩','▪','▫','◧','◨','◩','◪','◫',
-  '⬒','⬓','⬔','⬕','⬖','⬗','⬘','⬙','⬚','⬛','⬜','⬝','⬞','⬟','⬠','⬡','⬢','⬣','⬤','⬥'];
-
-function quantize(pixels, k) {
-  const data = pixels.map(p => [p[0], p[1], p[2]]);
-  const step = Math.max(1, Math.floor(data.length / k));
-  let centers = [];
-  for (let i = 0; i < k; i++) centers.push([...data[Math.min(i * step, data.length - 1)]]);
-
-  for (let iter = 0; iter < 12; iter++) {
-    const buckets = Array.from({length:k}, () => []);
-    for (const p of data) {
-      let best = 0, bestD = Infinity;
-      for (let i = 0; i < k; i++) {
-        const d = (p[0]-centers[i][0])**2 + (p[1]-centers[i][1])**2 + (p[2]-centers[i][2])**2;
-        if (d < bestD) { bestD = d; best = i; }
-      }
-      buckets[best].push(p);
-    }
-    let changed = false;
-    for (let i = 0; i < k; i++) {
-      if (!buckets[i].length) continue;
-      const avg = [0,0,0];
-      for (const p of buckets[i]) { avg[0]+=p[0]; avg[1]+=p[1]; avg[2]+=p[2]; }
-      avg[0] = Math.round(avg[0]/buckets[i].length);
-      avg[1] = Math.round(avg[1]/buckets[i].length);
-      avg[2] = Math.round(avg[2]/buckets[i].length);
-      if (avg[0] !== centers[i][0] || avg[1] !== centers[i][1] || avg[2] !== centers[i][2]) changed = true;
-      centers[i] = avg;
-    }
-    if (!changed) break;
-  }
-  return centers;
-}
-
-function closestColor(rgb, palette) {
-  let best = 0, bestD = Infinity;
-  for (let i = 0; i < palette.length; i++) {
-    const d = (rgb[0]-palette[i][0])**2 + (rgb[1]-palette[i][1])**2 + (rgb[2]-palette[i][2])**2;
-    if (d < bestD) { bestD = d; best = i; }
+function closest(rgb,palette){
+  let best=0,bestD=Infinity;
+  for(let i=0;i<palette.length;i++){
+    const d=(rgb[0]-palette[i][0])**2+(rgb[1]-palette[i][1])**2+(rgb[2]-palette[i][2])**2;
+    if(d<bestD){bestD=d;best=i}
   }
   return best;
 }
 
-function hexToRgb(hex) {
-  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+function dominantColor(imgData,x0,y0,x1,y1){
+  // 提取区域内主导色（出现频率最高的）
+  const hist={};
+  let maxCount=0, bestRgb=[0,0,0];
+  for(let y=y0;y<y1;y++){
+    for(let x=x0;x<x1;x++){
+      const i=(y*imgData.width+x)*4;
+      const key=`${imgData.data[i]},${imgData.data[i+1]},${imgData.data[i+2]}`;
+      hist[key]=(hist[key]||0)+1;
+      if(hist[key]>maxCount){maxCount=hist[key];bestRgb=[imgData.data[i],imgData.data[i+1],imgData.data[i+2]]}
+    }
+  }
+  return bestRgb;
 }
 
-function render() {
-  if (!sourceImg) return;
-  const w = parseInt(gridW.value);
-  const h = parseInt(gridH.value);
-  const k = parseInt(numColors.value);
-  const cell = parseInt(cellSize.value);
-  const mode = document.querySelector('input[name="mode"]:checked').value;
+function quantize(pixels,k){
+  const data=pixels.map(p=>[p[0],p[1],p[2]]);
+  const step=Math.max(1,Math.floor(data.length/k));
+  let centers=[];
+  for(let i=0;i<k;i++) centers.push([...data[Math.min(i*step,data.length-1)]]);
+  for(let iter=0;iter<12;iter++){
+    const buckets=Array.from({length:k},()=>[]);
+    for(const p of data){
+      let best=0,bestD=Infinity;
+      for(let i=0;i<k;i++){const d=(p[0]-centers[i][0])**2+(p[1]-centers[i][1])**2+(p[2]-centers[i][2])**2;if(d<bestD){bestD=d;best=i}}
+      buckets[best].push(p);
+    }
+    let changed=false;
+    for(let i=0;i<k;i++){
+      if(!buckets[i].length) continue;
+      const avg=[0,0,0];for(const p of buckets[i]){avg[0]+=p[0];avg[1]+=p[1];avg[2]+=p[2]}
+      avg[0]=Math.round(avg[0]/buckets[i].length);avg[1]=Math.round(avg[1]/buckets[i].length);avg[2]=Math.round(avg[2]/buckets[i].length);
+      if(avg[0]!==centers[i][0]||avg[1]!==centers[i][1]||avg[2]!==centers[i][2]) changed=true;
+      centers[i]=avg;
+    }
+    if(!changed)break;
+  }
+  return centers;
+}
 
-  // 1. 缩放到网格尺寸
-  const tmp = document.createElement('canvas');
-  tmp.width = w; tmp.height = h;
-  const tctx = tmp.getContext('2d');
-  tctx.drawImage(sourceImg, 0, 0, w, h);
-  const imgData = tctx.getImageData(0, 0, w, h);
+function cleanNoise(indices,w,h,threshold){
+  // BFS 连通区域合并：小区域被相邻大区域吸收
+  const visited=new Uint8Array(w*h);
+  const result=new Uint8Array(indices);
+  const level=threshold/100*80+5; // 5-85 range
 
-  // 2. 提取像素
-  const pixels = [];
-  for (let i = 0; i < imgData.data.length; i += 4) {
-    pixels.push([imgData.data[i], imgData.data[i+1], imgData.data[i+2]]);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      if(visited[y*w+x]) continue;
+      const colorIdx=result[y*w+x];
+      // BFS
+      const region=[];const queue=[[x,y]];
+      visited[y*w+x]=1;
+      while(queue.length){
+        const[cx,cy]=queue.shift();
+        region.push([cx,cy]);
+        for(const[dx,dy] of[[0,1],[1,0],[0,-1],[-1,0]]){
+          const nx=cx+dx,ny=cy+dy;
+          if(nx>=0&&nx<w&&ny>=0&&ny<h&&!visited[ny*w+nx]&&result[ny*w+nx]===colorIdx){
+            visited[ny*w+nx]=1;queue.push([nx,ny]);
+          }
+        }
+      }
+      // 小区域：找最多的邻居颜色
+      if(region.length<=level){
+        const neighborColors={};
+        for(const[cx,cy] of region){
+          for(const[dx,dy] of[[0,1],[1,0],[0,-1],[-1,0]]){
+            const nx=cx+dx,ny=cy+dy;
+            if(nx>=0&&nx<w&&ny>=0&&ny<h&&result[ny*w+nx]!==colorIdx){
+              const nc=result[ny*w+nx];
+              neighborColors[nc]=(neighborColors[nc]||0)+1;
+            }
+          }
+        }
+        let bestC=colorIdx,bestN=0;
+        for(const[c,n]of Object.entries(neighborColors)){if(n>bestN){bestN=n;bestC=parseInt(c)}}
+        if(bestN>0) for(const[cx,cy] of region) result[cy*w+cx]=bestC;
+      }
+    }
+  }
+  return result;
+}
+
+function removeBackground(){
+  if(!gridData) return;
+  const {indices,w,h}=gridData;
+  // 边界洪水填充：从四边出发，标记与边界相连的同色区域为背景
+  const bg=new Set();
+  const visited=new Uint8Array(w*h);
+  // 从四边出发
+  for(let x=0;x<w;x++){bg.add(indices[x]);bg.add(indices[(h-1)*w+x])}
+  for(let y=0;y<h;y++){bg.add(indices[y*w]);bg.add(indices[y*w+w-1])}
+
+  bgMarkedColors=new Set(bg);
+  gridData.bgCells=new Set();
+
+  for(const colorIdx of bg){
+    // 洪水填充：找所有与边界直接连通且颜色相同的格子
+    const queue=[];
+    for(let x=0;x<w;x++){
+      if(!visited[x]&&indices[x]===colorIdx){queue.push([x,0]);visited[x]=1}
+      if(!visited[(h-1)*w+x]&&indices[(h-1)*w+x]===colorIdx){queue.push([x,h-1]);visited[(h-1)*w+x]=1}
+    }
+    for(let y=1;y<h-1;y++){
+      if(!visited[y*w]&&indices[y*w]===colorIdx){queue.push([0,y]);visited[y*w]=1}
+      if(!visited[y*w+w-1]&&indices[y*w+w-1]===colorIdx){queue.push([w-1,y]);visited[y*w+w-1]=1}
+    }
+    while(queue.length){
+      const[cx,cy]=queue.shift();
+      gridData.bgCells.add(cy*w+cx);
+      for(const[dx,dy] of[[0,1],[1,0],[0,-1],[-1,0]]){
+        const nx=cx+dx,ny=cy+dy;
+        if(nx>=0&&nx<w&&ny>=0&&ny<h&&!visited[ny*w+nx]&&indices[ny*w+nx]===colorIdx){
+          visited[ny*w+nx]=1;queue.push([nx,ny]);
+        }
+      }
+    }
+  }
+  // 重算计数
+  const counts=new Array(gridData.palette.length).fill(0);
+  for(let i=0;i<indices.length;i++){if(!gridData.bgCells.has(i)) counts[indices[i]]++}
+  gridData.counts=counts;
+}
+
+// ═══════════ 渲染 ═══════════
+function render(){
+  if(!sourceImg) return;
+  const w=parseInt(gridW.value),h=parseInt(gridH.value);
+  const k=parseInt(numColors.value);
+  const cell=Math.max(8,Math.min(40,800/Math.max(w,h)));
+  const cleanThreshold=parseInt(cleanLevel.value);
+
+  // 1. 缩放到网格 + 主导色提取
+  const tmp=document.createElement('canvas');
+  tmp.width=sourceImg.width;tmp.height=sourceImg.height;
+  const tctx=tmp.getContext('2d');
+  tctx.drawImage(sourceImg,0,0);
+  const fullData=tctx.getImageData(0,0,sourceImg.width,sourceImg.height);
+
+  const cellW=sourceImg.width/w,cellH=sourceImg.height/h;
+  const pixels=[];
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const x0=Math.floor(x*cellW),y0=Math.floor(y*cellH);
+      const x1=Math.floor((x+1)*cellW),y1=Math.floor((y+1)*cellH);
+      pixels.push(dominantColor(fullData,x0,y0,Math.max(x0+1,x1),Math.max(y0+1,y1)));
+    }
   }
 
-  // 3. 颜色量化
-  let palette;
-  if (currentPalette) {
-    palette = currentPalette.map(c => hexToRgb(c.hex));
-  } else {
-    palette = quantize(pixels, Math.min(k, pixels.length));
+  // 2. 颜色量化
+  let palette,rgbPalette,names;
+  if(currentPalette){
+    rgbPalette=currentPalette.map(c=>hexToRgb(c.hex));
+    names=currentPalette.map(c=>c.name);
+  }else{
+    rgbPalette=quantize(pixels,Math.min(k,pixels.length));
+    names=rgbPalette.map((_,i)=>`C${i+1}`);
   }
-  // 按亮度排序（深色在前）
-  const idxBright = palette.map((c, i) => [i, c[0]*0.299 + c[1]*0.587 + c[2]*0.114]);
-  idxBright.sort((a,b) => a[1] - b[1]); // 暗→亮
-  const sortedIdx = idxBright.map(x => x[0]);
-  const sortedPalette = sortedIdx.map(i => palette[i]);
+  // 亮度排序
+  const ranked=rgbPalette.map((c,i)=>[i,c[0]*0.299+c[1]*0.587+c[2]*0.114]);
+  ranked.sort((a,b)=>a[1]-b[1]);
+  const sortedIdx=ranked.map(x=>x[0]);
+  rgbPalette=sortedIdx.map(i=>rgbPalette[i]);
+  names=sortedIdx.map(i=>names[i]);
 
-  // 4. 映射每个像素
-  const mapped = pixels.map(p => closestColor(p, sortedPalette));
+  // 3. 颜色映射
+  let indices=new Uint8Array(w*h);
+  for(let i=0;i<pixels.length;i++) indices[i]=closest(pixels[i],rgbPalette);
+
+  // 4. 杂色清理
+  if(cleanThreshold>0) indices=cleanNoise(indices,w,h,cleanThreshold);
 
   // 5. 计数
-  const counts = new Array(sortedPalette.length).fill(0);
-  for (const m of mapped) counts[m]++;
+  const counts=new Array(rgbPalette.length).fill(0);
+  for(const idx of indices) counts[idx]++;
 
-  // 6. 绘制预览
-  const canvas = document.createElement('canvas');
-  canvas.width = w * cell;
-  canvas.height = h * cell;
-  const ctx = canvas.getContext('2d');
+  // 6. 存数据
+  gridData={w,h,indices,palette:rgbPalette,names,counts,cell,bgCells:new Set(),rawPalette:rgbPalette};
+  bgMarkedColors.clear();editHistory=[];bgRemovalSnapshot=null;
 
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawPreview();
+}
+
+function drawPreview(){
+  if(!gridData) return;
+  const {w,h,indices,palette,counts,cell,bgCells}=gridData;
+
+  const canvas=document.createElement('canvas');
+  canvas.width=w*cell;canvas.height=h*cell;
+  canvas.style.cursor=editMode||eraseMode?'crosshair':'default';
+  const ctx=canvas.getContext('2d');
+
+  ctx.fillStyle='#e8e8e8';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
   // 色块
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = mapped[y * w + x];
-      const [r,g,b] = sortedPalette[idx];
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.fillRect(x*cell, y*cell, cell-1, cell-1);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const idx=indices[y*w+x];
+      const isBg=bgCells?.has(y*w+x);
+      const [r,g,b]=palette[idx];
+      if(isBg){ctx.fillStyle=`rgba(${r},${g},${b},0.3)`}
+      else{ctx.fillStyle=`rgb(${r},${g},${b})`}
+      ctx.fillRect(x*cell,y*cell,cell-1,cell-1);
     }
   }
 
   // 网格线
-  for (let y = 0; y <= h; y++) {
-    const thick = y % 10 === 0 ? 2 : 0.5;
-    ctx.strokeStyle = y % 10 === 0 ? '#aaa' : '#ddd';
-    ctx.lineWidth = thick;
-    ctx.beginPath(); ctx.moveTo(0, y*cell); ctx.lineTo(w*cell, y*cell); ctx.stroke();
+  for(let y=0;y<=h;y++){
+    const thick=y%10===0?2:0.5;
+    ctx.strokeStyle=y%10===0?'#999':'#ccc';
+    ctx.lineWidth=thick;
+    ctx.beginPath();ctx.moveTo(0,y*cell);ctx.lineTo(w*cell,y*cell);ctx.stroke();
   }
-  for (let x = 0; x <= w; x++) {
-    const thick = x % 10 === 0 ? 2 : 0.5;
-    ctx.strokeStyle = x % 10 === 0 ? '#aaa' : '#ddd';
-    ctx.lineWidth = thick;
-    ctx.beginPath(); ctx.moveTo(x*cell, 0); ctx.lineTo(x*cell, h*cell); ctx.stroke();
-  }
-
-  // 符号叠加
-  if (mode === 'symbol' || mode === 'both') {
-    const fontSize = Math.max(8, cell * 0.55);
-    ctx.font = `bold ${fontSize}px 'Segoe UI','Microsoft YaHei',sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const idx = mapped[y * w + x];
-        const [r,g,b] = sortedPalette[idx];
-        const lum = r*0.299 + g*0.587 + b*0.114;
-        ctx.fillStyle = lum > 128 ? '#000' : '#fff';
-        const sym = SYMBOLS[idx % SYMBOLS.length];
-        ctx.fillText(sym, x*cell + cell/2, y*cell + cell/2);
-      }
-    }
+  for(let x=0;x<=w;x++){
+    const thick=x%10===0?2:0.5;
+    ctx.strokeStyle=x%10===0?'#999':'#ccc';
+    ctx.lineWidth=thick;
+    ctx.beginPath();ctx.moveTo(x*cell,0);ctx.lineTo(x*cell,h*cell);ctx.stroke();
   }
 
-  // 7. 图例
-  let legendHTML = '';
-  for (let i = 0; i < sortedPalette.length; i++) {
-    const [r,g,b] = sortedPalette[i];
-    const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
-    const sym = SYMBOLS[i % SYMBOLS.length];
-    let name;
-    if (currentPalette) {
-      // 找到原始色板中对应颜色的名字
-      const origIdx = sortedIdx[i];
-      name = currentPalette[origIdx].name;
-    } else {
-      name = `C${i+1}`;
+  // 点击事件 — 编辑/擦除
+  canvas.addEventListener('click',e=>{
+    if(!editMode&&!eraseMode) return;
+    const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width,scaleY=canvas.height/rect.height;
+    const gx=Math.floor((e.clientX-rect.left)*scaleX/cell);
+    const gy=Math.floor((e.clientY-rect.top)*scaleY/cell);
+    if(gx<0||gx>=w||gy<0||gy>=h) return;
+
+    const idx=gy*w+gx;
+    if(eraseMode){
+      saveSnapshot();
+      const oldColor=gridData.indices[idx];
+      gridData.bgCells.add(idx);
+      gridData.counts[oldColor]=Math.max(0,(gridData.counts[oldColor]||0)-1);
+    }else if(editMode&&editColor!==null){
+      saveSnapshot();
+      const oldColor=gridData.indices[idx];
+      gridData.indices[idx]=editColor;
+      gridData.bgCells.delete(idx);
+      gridData.counts[oldColor]=Math.max(0,(gridData.counts[oldColor]||0)-1);
+      gridData.counts[editColor]=(gridData.counts[editColor]||0)+1;
     }
-    legendHTML += `<div class="legend-item">
+    drawPreview();
+  });
+
+  // 图例 — 点击选编辑颜色或标记背景
+  let legendHTML='';
+  const total=counts.reduce((a,b)=>a+b,0);
+  const bgTotal=bgCells?.size||0;
+  for(let i=0;i<palette.length;i++){
+    if(counts[i]===0) continue;
+    const [r,g,b]=palette[i];
+    const hex=`#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+    const isBg=bgMarkedColors.has(i);
+    legendHTML+=`<div class="legend-item${isBg?' bg-marked':''}" data-color-idx="${i}" title="左键选色 | 右键标记背景">
       <div class="swatch" style="background:${hex}"></div>
-      ${(mode==='symbol'||mode==='both') ? sym : ''} ${name} &times;${counts[i]}
+      ${names[i]} <span class="count">×${counts[i]}</span>
     </div>`;
   }
 
-  // 8. 更新 DOM
-  previewArea.innerHTML = '';
+  previewArea.innerHTML='';
   previewArea.appendChild(canvas);
-  const legendDiv = document.createElement('div');
-  legendDiv.className = 'legend';
-  legendDiv.innerHTML = legendHTML;
+  const legendDiv=document.createElement('div');
+  legendDiv.className='legend';
+  legendDiv.innerHTML=legendHTML;
+  // 图例交互
+  legendDiv.querySelectorAll('.legend-item').forEach(item=>{
+    item.addEventListener('click',e=>{
+      const colorIdx=parseInt(item.dataset.colorIdx);
+      if(editMode){
+        editColor=colorIdx;$('btnEdit').style.background=gridData.palette[colorIdx].map(c=>Math.min(255,c+40)).join(',')?'rgb('+gridData.palette[colorIdx].join(',')+')':'#e94560';
+      }
+    });
+    item.addEventListener('contextmenu',e=>{
+      e.preventDefault();
+      const colorIdx=parseInt(item.dataset.colorIdx);
+      if(bgMarkedColors.has(colorIdx)) bgMarkedColors.delete(colorIdx);
+      else bgMarkedColors.add(colorIdx);
+      // Undo bg标记 — 重新做背景移除
+      saveSnapshot();
+      gridData.bgCells.clear();
+      for(const ci of bgMarkedColors){
+        for(let i=0;i<gridData.indices.length;i++){
+          if(gridData.indices[i]===ci) gridData.bgCells.add(i);
+        }
+      }
+      const counts=new Array(gridData.palette.length).fill(0);
+      for(let i=0;i<gridData.indices.length;i++){if(!gridData.bgCells.has(i)) counts[gridData.indices[i]]++}
+      gridData.counts=counts;
+      drawPreview();
+    });
+  });
   previewArea.appendChild(legendDiv);
 
-  infoBar.textContent = `${w}&times;${h} 格 | ${sortedPalette.length} 色 | 共 ${w*h} 颗`;
-  canvas._gridData = { w, h, cell, mapped, palette:sortedPalette, mode };
+  infoBar.textContent=`${w}×${h}格 | ${palette.length}色 | 共${total-bgTotal}颗${bgTotal?' (背景'+bgTotal+'颗)':''}`;
 }
 
-// ═══════════════════════════════════════════
-// 下载
-// ═══════════════════════════════════════════
-$('btnDownload').addEventListener('click', () => {
-  const canvas = previewArea.querySelector('canvas');
-  if (!canvas) return;
-  const link = document.createElement('a');
-  link.download = '拼豆图纸.png';
-  link.href = canvas.toDataURL('image/png');
+// ═══════════ 下载 ═══════════
+$('btnDownload').addEventListener('click',()=>{
+  const canvas=previewArea.querySelector('canvas');
+  if(!canvas) return;
+  const link=document.createElement('a');
+  link.download='拼豆图纸.png';
+  link.href=canvas.toDataURL('image/png');
   link.click();
 });
 
-// ═══════════════════════════════════════════
-// 打印
-// ═══════════════════════════════════════════
-$('btnPrint').addEventListener('click', () => {
-  const canvas = previewArea.querySelector('canvas');
-  if (!canvas) return;
-  const w = window.open('', '_blank', 'width=900,height=700');
+// ═══════════ 采购清单 ═══════════
+$('btnShopList').addEventListener('click',()=>{
+  if(!gridData) return;
+  const {palette,names,counts,w,h,bgCells}=gridData;
+  const total=counts.reduce((a,b)=>a+b,0)-(bgCells?.size||0);
+  // 生成采购清单图片
+  const itemH=32,width=400;
+  const activeColors=palette.map((_,i)=>i).filter(i=>counts[i]>0&&!bgMarkedColors.has(i));
+  const height=activeColors.length*itemH+120;
+  const c=document.createElement('canvas');
+  c.width=width;c.height=height;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+  ctx.fillStyle='#1a1a2e';ctx.font='bold 18px Microsoft YaHei';ctx.textAlign='center';
+  ctx.fillText('拼豆采购清单',width/2,36);
+  ctx.font='13px Microsoft YaHei';ctx.fillStyle='#666';
+  ctx.fillText(`${w}×${h}格 | ${activeColors.length}色 | 共${total}颗`,width/2,60);
+
+  activeColors.forEach((colorIdx,i)=>{
+    const y=80+i*itemH;
+    const [r,g,b]=palette[colorIdx];
+    ctx.fillStyle=`rgb(${r},${g},${b})`;
+    ctx.fillRect(20,y+2,28,28);
+    ctx.strokeStyle='#ccc';ctx.strokeRect(20,y+2,28,28);
+    ctx.fillStyle='#333';ctx.font='14px Microsoft YaHei';ctx.textAlign='left';
+    ctx.fillText(names[colorIdx],60,y+14);
+    ctx.fillText(`× ${counts[colorIdx]} 颗`,60,y+30);
+    // 进度条
+    const pct=counts[colorIdx]/total;
+    ctx.fillStyle=`rgb(${r},${g},${b})`;
+    ctx.fillRect(160,y+8,pct*200,10);
+    ctx.fillStyle='#999';ctx.font='11px Microsoft YaHei';ctx.textAlign='right';
+    ctx.fillText(Math.round(pct*100)+'%',370,y+24);
+  });
+
+  const link=document.createElement('a');
+  link.download='拼豆采购清单.png';
+  link.href=c.toDataURL('image/png');
+  link.click();
+});
+
+// ═══════════ 打印 ═══════════
+$('btnPrint').addEventListener('click',()=>{
+  const canvas=previewArea.querySelector('canvas');
+  if(!canvas) return;
+  const w=window.open('','_blank','width=900,height=700');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>拼豆图纸</title>
-    <style>body{text-align:center;font-family:'Microsoft YaHei',sans-serif;margin:20px;}
-    img{max-width:100%;border:1px solid #ccc;}@media print{body{margin:0;}img{max-width:100%;page-break-inside:avoid;}}
-    h2{color:#e94560;}</style></head><body>
-    <h2>🧶 拼豆/十字绣图纸</h2>
-    <p>${gridW.value}&times;${gridH.value} | ${numColors.value}色 | 共 ${parseInt(gridW.value)*parseInt(gridH.value)} 颗</p>
-    <img src="${canvas.toDataURL()}"><br><button onclick="window.print()" style="margin:12px;padding:8px 24px;font-size:16px;cursor:pointer;">🖨️ 打印</button>
+    <style>body{text-align:center;font-family:'Microsoft YaHei',sans-serif;margin:20px}
+    img{max-width:100%;border:1px solid #ccc}@media print{body{margin:0}img{max-width:100%;page-break-inside:avoid}}
+    h2{color:#e94560}</style></head><body>
+    <h2>🧶 拼豆图纸</h2>
+    <p>${gridW.value}×${gridH.value} | ${numColors.value}色 | 共 ${parseInt(gridW.value)*parseInt(gridH.value)} 颗</p>
+    <img src="${canvas.toDataURL()}"><br><button onclick="window.print()" style="margin:12px;padding:8px 24px;font-size:16px;cursor:pointer">🖨️ 打印</button>
     </body></html>`);
   w.document.close();
 });
 
-// ═══════════════════════════════════════════
-// 快捷键
-// ═══════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.key === 's') { e.preventDefault(); $('btnDownload').click(); }
+// ═══════════ 快捷键 ═══════════
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();$('btnDownload').click()}
+  if(e.ctrlKey&&e.key==='z'){e.preventDefault();$('btnUndo').click()}
+  if(e.key==='Escape'){e.preventDefault();exitEditMode()}
 });
 </script>
-
 </body>
 </html>
