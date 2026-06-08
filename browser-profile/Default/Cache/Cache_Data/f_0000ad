@@ -1,0 +1,461 @@
+<template>
+    <div class="vip-view-handle" :class="{forsite: forsite}">
+        <ul>
+            <li>
+                <a href="javascript:;"><i class="icon-vvh-transmit"></i><s>转发</s></a>
+                <div class="dialog-box" style="width: 500px;">
+                    <div class="dialog-header">
+                        <h3>转发</h3>
+                    </div>
+                    <div class="link-dialog">
+                        <div class="rld-box">
+                            <div class="top">
+                                <i class="icon-operate ifo-encrypt"></i>
+                                <span class="name">{{config.url}}</span>
+                                <i class="separate"></i>
+                                <a href="javascript:;" class="btn-link" @click="copyText(config.url)"><i class="icon-operate ifo-copy"></i><span>复制链接</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dialog-action">
+                        <!-- 渠道 -->
+                        <div class="channel-wrap">
+                            <span>渠道：</span>
+                            <div class="channel-items" id="vue-vip—share-btns">
+                                <!-- 避免请求yun.115.com 接口，去掉我聊入口和相关判断 -->
+<!--                                <a href="javascript:;" v-if="showShareChat" @click="shareChat" class="item"><i class="icon-shareto-im"></i><div class="common-little-pop"><span>我聊</span></div></a>-->
+                                <a href="javascript:;" v-if="showShareHome" @click="shareHome" class="item"><i class="icon-shareto-home"></i><div class="common-little-pop"><span>转到江湖</span></div></a>
+                                <a href="javascript:;" oof_share="weixin" class="item"><i class="icon-shareto-wechat"></i><div class="common-little-pop"><span>微信</span></div></a>
+                                <a href="javascript:;" oof_share="weibo" class="item"><i class="icon-shareto-weibo"></i><div class="common-little-pop"><span>微博</span></div></a>
+                                <a href="javascript:;" oof_share="qzone" class="item"><i class="icon-shareto-qzone"></i><div class="common-little-pop"><span>QQ空间</span></div></a>
+                                <a href="javascript:;" oof_share="tieba"  class="item"><i class="icon-shareto-tieba"></i><div class="common-little-pop"><span>贴吧</span></div></a>
+<!--                                <a href="javascript:;" class="item"><i class="icon-shareto-2code"></i><span></span></a>-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <a href="javascript:;" @click="showFeedback"><i class="icon-vvh-service"></i><s>联系客服</s></a>
+            </li>
+            <li v-if="showBackToTop">
+                <a href="javascript:;" @click="backToTop"><i class="icon-vvh-gotop"></i><s>返回顶部</s></a>
+            </li>
+        </ul>
+    </div>
+</template>
+
+<script type="text/javascript">
+//#MODE ES6#
+var shareing = false;
+module.exports = {
+    props: {
+
+        backToTopOffset: {
+            default: 50
+        },
+        forsite: {
+            default: false,
+        }
+    },
+    data() {
+        return {
+            config: {
+                url: top.location.href,
+                link: top.location.href,
+                icon: 'https://union.115.com/static/logo.png',
+                title: document.title||'115生活',
+                desc: document.title||'115生活',
+                content: document.title||'115生活',
+                dom: null,
+                weixin:{
+                    offsetTop: -200,
+                    offsetLeft: -100,
+                }
+            },
+            gid: 0,
+            showShareChat: false,
+            showShareHome: false,
+            showBackToTop: false,
+        }
+    },
+    created() {
+
+    },
+    mounted(){
+        this.initSharing();
+        this.bindBackToTop();
+    },
+    methods: {
+        shareChat() {
+            const vm = this;
+            function _() {
+                let memberSelector = oofUtil.memberSelector.selectCircleGroupMember({
+                    gid: vm.gid,
+                    has_fav: false,
+                    group_chat: true,
+                    has_group_sel: false,
+                    has_team: true,
+                    title: '请选择联系人',
+                    max_count: 1,
+                    getTeamUsers: false,
+                    han_anony: false,
+                    cross_company: true,
+                    has_chat_group: false,
+                    justSelectOne: true,
+                    group_limit: 0,
+                    // removeList: [top.USER_INFO.USER_ID],
+                    callback: function (res) {
+                        var seled = res.selectMembers[0],
+                            SUBMITTIMG = false, timer;
+                        var FACE = '';
+                        var NAME = '';
+                        var $dom;
+                        var dg;
+                        var $button = $('<div class="dialog-action">' +
+                            '<a href="javascript:;" btn="cancel" class="dgac-cancel">取消</a>' +
+                            '<a href="javascript:;" btn="confirm" class="dgac-confirm">确定</a>' +
+                            '</div>');
+                        if (!seled) {
+                            $.alertTip("请选择成员或群聊")
+                            return false;
+                        }
+                        if (res.members[seled]) {
+                            FACE = res.members[seled].user_face
+                            NAME = res.members[seled].remark
+                            open();
+                        }
+                        if (seled.toString()[0] == 'T') {
+                            oofUtil.plug.yunUAG.getTeam(seled, null, function (tinfo) {
+                                FACE = tinfo.face_l
+                                NAME = tinfo.name
+                                open(tinfo);
+                            })
+                        }
+
+                        function open(tinfo) {
+                            clearTimeout(timer);
+                            $dom = $('<div class="task-manage-person" style="display: ;">' +
+                                '<em>发给：</em>' +
+                                '<img src="' + FACE + '&v_b=21" rel="face" alt="">' +
+                                '<span rel="user_name">' + NAME + '</span>' +
+                                '</div>' +
+                                '<div class="transmit-overview"> ' +
+                                '<div class="tas-box"> ' +
+                                '<img src="' + vm.config.icon + '"> ' +
+                                '<span>' + vm.config.content + '</span>' +//(obj.detail||shareTitle)
+                                '</div>' +
+                                '</div>' +
+                                '<div class="task-manage-text" rel="iframe" style="display: ;"></div>');
+
+                            $dom.filter('[rel="iframe"]').append('<textarea style="width:660px;height:175px;padding:20px;border:0;"></textarea>').show();
+
+                            dg = new Core.DialogBase({
+                                content: $dom,
+                                width: 700
+                            })
+
+                            setTimeout(function () {
+
+                                dg.Open(function () {
+                                    dg.warp.find('[rel="title_box"]').remove();
+                                    dg.warp.append($button);
+                                    Util.Layer.Center(dg.warp, {
+                                        NoAddScrollTop: true
+                                    });
+
+                                    Util.Mouse.MoveBox({
+                                        ClickBox: $dom.filter('.task-manage-person'),
+                                        Box: dg.warp
+                                    })
+                                })
+                                dg.warp.css({
+                                    top:  '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)'
+                                })
+                                dg.warp.find('textarea').focus();
+                                dg.warp.find('textarea').keydown(function (e) {
+                                    if ((e.metaKey || e.ctrlKey) && e.keyCode == 13) {
+                                        $button.find('a[btn=confirm]').click();
+                                        return false;
+                                    }
+                                })
+
+                                if (tinfo && top.oofUtil.atMode) {
+                                    var ipt = dg.warp.find('textarea');
+                                    ipt.attr('has_all', 1);
+                                    oofUtil.atMode.Init(ipt[0], function (text) {
+                                        if (!tinfo || tinfo.members_info.length <= 2) return;
+
+                                        var pySearch = oofUtil.pinyinSearch.getSearchObject('_at_search_' + tinfo.key);
+
+
+                                        for (var i = 0, c = tinfo.members_info.length, d; i < c; i++) {
+                                            d = tinfo.members_info[i];
+                                            d.src = d.face_m || d.face_s;
+                                            pySearch.addItem([d.user_name, d.nick_name, d.user_id], d, d.user_id);
+                                        }
+
+
+                                        var list = pySearch.search(text);
+                                        var ulist = $.extend(true, [], list);
+                                        for (var i = 0, c = ulist.length, d; i < c; i++) {
+                                            d = ulist[i];
+                                            d.user_name = d.nick_name || d.user_name;
+                                        }
+                                        if (!text) {
+                                            ulist.unshift({
+                                                uid: '所有人',
+                                                user_name: '所有人',
+                                                src: '//cdnassets.115.com/images/cha_msg_at@3x.png'
+                                            })
+                                        }
+                                        if ($.trim(ipt.val())) {
+                                            oofUtil.atMode.setList(ulist);
+                                        } else {
+                                            oofUtil.atMode.setList([]);
+                                        }
+
+                                    }, 1100000000);
+
+                                }
+
+                            }, 13)
+                        }
+
+
+                        $button.on('click', '[btn]', function () {
+                            if (SUBMITTIMG) {
+                                return false;
+                            }
+                            SUBMITTIMG = true;
+
+                            var $self = $(this);
+
+                            if ($self.attr('btn') == 'cancel') {
+                                dg.Close();
+                                return false;
+                            }
+
+                            var remark = dg.warp.find('textarea').val() || "";
+
+                            if (res.selectMembers && res.selectMembers.length) {
+                                var key = res.selectMembers[0]
+                                var m_data = {
+                                    b: vm.config.link + '#\n' + vm.config.content,
+                                    card: {
+                                        desc: '',
+                                        pic: vm.config.icon,
+                                        t: "0",
+                                        title: vm.config.content,
+                                        url: vm.config.link
+                                    },
+                                    ex: {
+                                        sk: ''
+                                    }
+                                };
+                                m_data.card.pic = /^https?:/i.test(vm.config.icon) ? vm.config.icon : 'http:' + vm.config.icon;
+                                vm.sendChat({
+                                    tid: key,
+                                    tt: (key.toString()[0] == 'T') ? 2 : 1, //1表示user，2表示group
+                                    m: JSON.stringify(m_data),
+                                    success: function (json) {
+                                        if (json.state) {
+                                            if (remark) {
+                                                vm.sendChat({
+                                                    tid: key,
+                                                    tt: (key.toString()[0] == 'T') ? 2 : 1, //1表示user，2表示group
+                                                    m: JSON.stringify({
+                                                        b: remark, ex: {
+                                                            at_all: (remark && remark.indexOf('@所有人') > -1) ? 1 : 0,
+                                                            sk: ''
+                                                        }
+                                                    }),
+                                                    success: function (json) {
+                                                        SUBMITTIMG = false;
+                                                        if (json.state) {
+                                                            $.successTip('分享成功')
+                                                            dg.Close();
+                                                        } else {
+                                                            $.alertTip(json.message);
+                                                        }
+                                                    }
+                                                })
+                                            } else {
+                                                $.successTip('分享成功')
+                                                dg.Close();
+                                            }
+
+                                        } else {
+                                            SUBMITTIMG = false;
+                                            $.alertTip(json.message);
+                                        }
+                                    }
+                                })
+
+
+                            }
+                        });
+
+                        return true;
+                    }
+                });
+                memberSelector.dg.warp.css({
+                    top:  '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)'
+                })
+            }
+            if (!oofUtil.memberSelector || !oofUtil.memberSelector.yunSet) {
+                $.getScript('//cdnres.115.com/yun/m_r/memberSelector_v2/memberSelector.js', function () {
+                    _();
+                })
+            } else {
+                setTimeout(function () {
+                    _();
+                }, 13);
+
+            }
+        },
+        shareHome() {
+            const vm = this;
+            if (shareing) return;
+            shareing = true;
+            $.loadTip('分享中...');
+            var data = {
+                url: this.config.link,
+                title: this.config.content,
+                content: this.config.content,
+                image: this.config.icon,
+            }
+            $.ajax({
+                url: '//home.115.com/api/1.0/web/1.0/topic/share',
+                type: 'post',
+                xhrFields: { withCredentials: true },
+                dataType: 'json',
+                data: data,
+                success: function (json) {
+                    shareing = false;
+                    $.closeTip();
+                    if (json.state) {
+                        $.successTip('分享成功');
+                    } else {
+                        $.alertTip(json.message);
+                    }
+                }
+            })
+        },
+        initSharing() {
+            const _this = this;
+            function _(groupId) {
+                if (_.doed) {
+                    return;
+                }
+                _this.gid = groupId;
+                _.doed = true;
+            }
+            function __(list) {
+                if (list.length >= 1) {
+                    _this.showShareChat = true;
+                    _(list[0].gid);
+                } else {
+                    _this.showShareChat = false;
+                }
+            }
+            if (window.USER_ID) {
+                _this.showShareHome = true;
+                // 查询用户所在组织(理论上第一个是当前组织)
+
+                // 避免请求yun.115.com 接口，去掉我聊入口和相关判断
+                /*$.ajax({
+                    url: "//yun.115.com/0/portal/groups",
+                    dataType: "json",
+                    type: "post",
+                    xhrFields: {withCredentials: true},
+                    success: function (json) {
+                        if (json.state && json.data) {
+                            _this.showShareHome = true;
+                            __(json.data);
+                        }
+                    }
+                })*/
+            } else {// 没登录不要去调用
+                _this.showShareChat = false;
+                _this.showShareHome = false;
+            }
+            this.config.dom = $('#vue-vip—share-btns')[0];
+            oofUtil.plug.initShareConfig(this.config);
+            oofUtil.plug.share(this.config);
+        },
+        sendChat(data) {
+            var d = {
+                contact_id: data.tid,
+                session_id: 'session',
+                from: '0',
+                message: data.m
+            }
+
+            $.ajax({
+                url: "//yunmsg.115.com/msg/api/1.0/web/1.0/" + (data.gid || this.gid) + "/chat/send",
+                data: d,
+                dataType: "json",
+                type: "post",
+                xhrFields: { withCredentials: true },
+                success: function (json) {
+                    data.success && data.success(json);
+                }
+            });
+        },
+        copyText: function (text) {
+            const $cipt = $('<textarea style="position: absolute;left: -999px;top: -999px;"><textarea>');
+            $(document.body).append($cipt);
+            $cipt.val(text).trigger('select');
+            document.execCommand('copy',false,null);
+            $cipt.remove();
+            $.successTip('复制成功');
+        },
+        bindBackToTop() {
+            const vm = this;
+            const handler = _.debounce(function(){
+                const offset = $(document).scrollTop()
+                vm.showBackToTop = offset > vm.backToTopOffset;
+            }, 50);
+            $(document).on('scroll', handler)
+        },
+        backToTop() {
+            $(document).scrollTop(0);
+        },
+        showFeedback() {
+            var height = document.body.clientHeight - 100;
+            if (height < 400) height = 400;
+            if (height > 920) height = 920;
+            $.showTabFrameDG(
+                [
+                    {
+                        url: "//q.115.com/feedback/main",
+                        tabName: "找客服",
+                        width: 1000,
+                        height: height,
+                        title: " ",
+                        loaded: null,
+                    },
+                    {
+                        url: "//q.115.com/feedback/feedback",
+                        tabName: "反馈历史",
+                        width: 1000,
+                        height: height,
+                        title: " ",
+                        loaded: null,
+                    },
+                ],
+                0
+            );
+        }
+    }
+}
+</script>
+
+<style scoped>
+
+</style>

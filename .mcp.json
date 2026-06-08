@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "servo": {
+      "command": "npx",
+      "args": ["servo-mcp"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium", "--executable-path", "C:\\Users\\Administrator\\AppData\\Local\\ms-playwright\\chromium-1223\\chrome-win64\\chrome.exe"]
+    },
+    "native-devtools": {
+      "command": "npx",
+      "args": ["-y", "native-devtools-mcp"]
+    }
+  }
+}

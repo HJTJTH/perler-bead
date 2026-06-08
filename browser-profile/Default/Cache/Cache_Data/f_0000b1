@@ -1,0 +1,567 @@
+<template>
+    <div class="version-wrap" v-if="mode == 'bar'" id="js_app_version_container">
+        <div class="item-wrap" v-for="bar in barGroups">
+            <div class="item">
+                <i :class="bar.class"></i>
+                <span class="name">{{ bar.title }}</span>
+                <a href="javascript:;" class="btn-link"><span>下载</span></a>
+            </div>
+            <div class="download-app-dialog">
+                <div class="down-cell-group" style="flex-direction: column;">
+                    <div style="display: flex; flex-direction: row; gap: 20px;" v-for="appGroup in bar.apps">
+                        <div class="down-cell" v-for="group in appGroup">
+                            <div class="down-title" style="min-width: 150px">
+                                <div class="title">
+                                    <i :class="group.logo"></i><span>{{ group.title }}</span><span class="txt-sub">{{ group.sub_title }}</span><s class="test-version" v-if="group.is_test">测试版</s>
+                                </div>
+                            </div>
+                            <div class="version-popup">
+                                <div class="vp-item" :class="{current: item.current_device ? item.current_device(this) : false}" v-for="item in group.items">
+                                    <!-- <div class="current-device"><span>当前设备</span></div> -->
+                                    <div class="qrcode" v-if="item.qrcode"><img :src="item.qrcode" alt=""><div class="pic-sm"><i :class="item.pic"></i></div></div>
+                                    <div class="pic" v-if="item.qrcode"><div class="name">{{ item.title }}</div><i :class="item.pic"></i></div>
+                                    <a href="javascript:void(0)" class="pic" v-else @click="startDownload(item.key)"><div class="name">{{ item.title }}</div><i :class="item.pic"></i></a>
+                                    <div class="desc" v-if="item.desc.indexOf('扫一扫') > -1 && downInfo[item.key]">版本：{{ downInfo[item.key].version_code }}</div>
+                                    <div class="desc" v-else-if="item.desc.indexOf('扫一扫') > -1 && !downInfo[item.key]">版本：{{ item.version }}</div>
+                                    <div class="desc" v-if="item.desc === '__version__' && downInfo[item.key]">版本：{{ downInfo[item.key].version_code }}</div>
+                                    <div class="desc" v-else-if="item.desc && item.desc !== '__version__'">{{ item.desc }}</div>
+                                    <div v-if="item.key === 'Android-tv'">
+                                        <a href="javascript:;" class="btn-link" @click="startDownload(item.key)"><span>最新版</span></a>&nbsp;&nbsp;
+                                        <a href="//115.com/product_cloud#tv_desc_page" target="_blank" class="btn-link" style="margin-left: 5px;"><span>兼容版</span></a>
+                                    </div>
+                                    <a href="javascript:;" class="btn-link" v-else-if="item.download" @click="startDownload(item.key)"><span>下载</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-else-if="(mode == 'dialog' && dialogVisible) || mode == 'page'" style="position: fixed; top:0; inset: 0; z-index: 1000" :style="{position:mode == 'dialog'?'fixed':'static',background:mode == 'dialog'?'rgba(0,0,0,.25)':'#fff'}">
+        <div :class="{'dialog-box':mode == 'dialog'}" style="background: #fff" :style="{width:mode == 'dialog'?'1260px':'auto'}" id="vue_app_down_box">
+            <div class="dialog-handle" v-if="mode == 'dialog'"><a href="javascript:;" class="close" @click="dialogVisible = false">关闭</a></div>
+            <div class="dialog-header" v-if="mode == 'dialog'">
+                <h3>下载客户端</h3>
+            </div>
+            <div rel="base_content">
+                <div class="download-app-dialog">
+                    <div class="down-cell-group" v-for="groups in dialogViewGroups">
+                        <div class="down-cell" v-for="group in groups" :style="group.cellStyle">
+                            <div class="down-title">
+                                <div class="title">
+                                    <i :class="group.logo"></i><span>{{ group.title }}</span><span class="txt-sub">{{ group.sub_title }}</span><s class="test-version" v-if="group.is_test">测试版</s>
+                                </div>
+                            </div>
+                            <div class="version-popup">
+                                <div class="vp-item" v-for="item in group.items">
+                                    <!-- <div class="current-device"><span>当前设备</span></div> -->
+                                    <div class="qrcode" v-if="item.qrcode"><img :src="item.qrcode" alt=""><div class="pic-sm"><i :class="item.pic"></i></div></div>
+                                    <div class="pic" v-if="item.qrcode"><div class="name">{{ item.title }}</div><i :class="item.pic"></i></div>
+                                    <a href="javascript:void(0)" class="pic" v-else @click="startDownload(item.key)"><div class="name">{{ item.title }}</div><i :class="item.pic"></i></a>
+                                    <div class="desc" v-if="item.desc === '__version__' && downInfo[item.key]">版本：{{ downInfo[item.key].version_code }}</div>
+                                    <div class="desc" v-else-if="item.desc && item.desc !== '__version__'" >{{ item.desc }}</div>
+                                    <div v-if="item.key === 'Android-tv'">
+                                        <a href="javascript:;" class="btn-link" @click="startDownload(item.key)"><span>最新版</span></a>&nbsp;&nbsp;
+                                        <a href="//115.com/product_cloud#tv_desc_page" target="_blank" class="btn-link" style="margin-left: 5px;"><span>兼容版</span></a>
+                                    </div>
+                                    <a href="javascript:;" class="btn-link" v-else-if="item.download" @click="startDownload(item.key)"><span>下载</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script type="text/javascript">
+//#MODE ES6#
+var hostMatch = (window.location.hostname).match(/115(rc)?\.com$/);
+var isYun = false;
+
+try{
+    isYun = (top.location.hostname).match(/yun\.115(rc)?\.com$/);
+}catch(e){}
+
+var keyMap = {
+    iOS:'iOS-iPhone',
+    iOSWangPan:'115wangpan_iOS',
+    AndroidWangPan:'115wangpan_android',
+    HarmonyWangPan:'115wangpan_hongmeng',
+    iOSYun:'iOS-iPhone-Yun',
+    Android:'Android',
+    AndroidTv:'Android-tv',
+    AppleTv: 'apple-tv',
+    AndroidYun:'Android-Yun',
+    BrowserWin:'PC-115chrome',
+    BrowserWin64:'PC-115chrome_x64',
+    BrowserMac:'MAC-115chrome',
+    BrowserMacArm:'MAC-Arm-115chrome',
+    BrowserLinux:'Linux-115chrome',
+    ClientWin:'window_115',
+    ClientMac:'mac_115',
+    ClientLinux:'linux_115',
+    ClientWinX64:'window_115_x64',
+    LifeClientWin: '115Life_Windows_X32',
+    LifeClientWinX64: '115Life_Windows_X64',
+    LifeClientMac: '115Life_macOS_Intel',
+    LifeClientMacArm: '115Life_macOS_Arm',
+};
+
+module.exports = {
+    props: {
+        mode: {
+            type: String,
+            default: 'bar',
+        }
+    },
+    data() {
+        return {
+            isYun:!!isYun,
+            device: '',
+            apple_silicon: false,
+            dialogVisible: false,
+
+            downInfo:{
+                "Android": {
+                    "app_os": 1,
+                    "version_code": "31.1.0",
+                    "created_time": 1627611179,
+                    "version_url": "https://down.115.com/client/android/115_28.2.0.apk"
+                },
+                "iOS-iPhone": {
+                    "app_os": 2,
+                    "version_code": "30.1.0",
+                    "created_time": 1617956737,
+                    "version_url": "https://apps.apple.com/cn/app/115/id1446829613"
+                },
+                "115wangpan_iOS": {
+                    "app_os": 63,
+                    "version_code": "32.1.0",
+                    "created_time": 1719297210,
+                    "version_url": "https://apps.apple.com/cn/app/115/id1469012999"
+                },
+                "115wangpan_android": {
+                    "version_code": "",
+                    "created_time": 0,
+                    "version_url": ""
+                },
+                "115wangpan_hongmeng": {
+                    "version_code": "",
+                    "created_time": 0,
+                    "version_url": ""
+                },
+                "PC-115chrome": {
+                    "app_os": 7,
+                    "version_code": "26.0.6.3",
+                    "created_time": 1702878783,
+                    "version_url": "http://192.168.64.57:8888/115br_v26.0.6.1.exe"
+                },
+                "PC-115chrome_x64": {
+                    "app_os": 57,
+                    "version_code": "27.0.5.6",
+                    "created_time": 1728435181,
+                    "version_url": "https://down.115.com/client/win/115br_v27.0.5.6_x64.exe"
+                },
+                "Android-tv": {
+                    "app_os": 13,
+                    "version_code": "8.5.0",
+                    "created_time": 1566980463,
+                    "version_url": "http://down.115.com/client/tv/115TV_v1.7.6.apk"
+                },
+                "Android-Yun": {
+                    "app_os": 17,
+                    "version_code": "30.0.2",
+                    "created_time": 1617851466,
+                    "version_url": "http://192.168.17.42:8080/job/115office/197/artifact/www/115_cloudoffice_geTuiPush_preview_28.2.0_20210331-0812.apk"
+                },
+                "iOS-iPhone-Yun": {
+                    "app_os": 18,
+                    "version_code": "30.0.2",
+                    "created_time": 1617865794,
+                    "version_url": "http://192.168.0.100:8080/view/all/job/115%E7%BB%84%E7%BB%87/2917/artifact/build/115%E7%BB%84%E7%BB%87_v28.2.0_20210408.0715.ipa"
+                },
+                "MAC-115chrome": {
+                    "app_os": 20,
+                    "version_code": "28.0.1.10",
+                    "created_time": 1702869642,
+                    "version_url": "ftp://192.168.41.31:21/115br_v26.0.6.5_x64.dmg"
+                },
+                "window_115": {
+                    "app_os": 49,
+                    "version_code": "3.0.0.17",
+                    "created_time": 1634022430,
+                    "version_url": "https://down.115.com/client/115pc/win/115pc_2.0.9.3.exe"
+                },
+                "mac_115": {
+                    "app_os": 51,
+                    "version_code": "2.0.9.3",
+                    "created_time": 1634709573,
+                    "version_url": "http://192.168.64.57:8002/115pc_v2.0.9.3.dmg"
+                },
+                "linux_115": {
+                    "app_os": 53,
+                    "version_code": "2.0.0.16",
+                    "created_time": 1641281498,
+                    "version_url": "http://192.168.64.235:8000/115_2.0.0.16.deb"
+                },
+                "Linux-115chrome":{
+                    "app_os": 59,
+                    "version_code": "28.0.1.14",
+                    "created_time": 1702964748,
+                    "version_url": "ftp://192.168.41.31:21/115br_arm.dmg"
+                },
+                "window_115_x64": {
+                    "app_os": 55,
+                    "version_code": "2.0.6.3",
+                    "created_time": 1688955451,
+                    "version_url": "http://192.168.65.125:3000/115_v2.0.6.2(x64)副本.exe"
+                },
+                "MAC-Arm-115chrome": {
+                    "app_os": 59,
+                    "version_code": "28.0.1.14",
+                    "created_time": 1702964748,
+                    "version_url": "ftp://192.168.41.31:21/115br_arm.dmg"
+                }
+            },
+            viewGroups: {
+                app_115life: {
+                    title: '115生活',
+                    sub_title: '-手机端',
+                    logo: 'icon-logo-cloud',
+                    items: [
+                        {
+                            title: '安卓端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_app_download.png?v=2',
+                            logo: { icon: 'isl-cloud', platform: 'isp-android' },
+                            pic: 'icon-download-types-android',
+                            key: keyMap.Android,
+                            desc: '__version__',  // '__version__' - 显示版本;  false - 隐藏； '文本' - 直接显示
+                            download: true,
+                        },
+                        {
+                            title: '苹果端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_app_download.png?v=2',
+                            logo: { icon: 'isl-cloud', platform: 'isp-ios' },
+                            pic: 'icon-download-types-ios',
+                            key: keyMap.iOS,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            title: '鸿蒙端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_wangpan_hongmeng_download.png?v=3',
+                            logo: { icon: 'isl-cloud', platform: 'isp-hongmeng' },
+                            pic: 'icon-download-types-hmos',
+                            key: keyMap.HarmonyWangPan,
+                            desc: '__version__',
+                            download: true,
+                        },
+                    ]
+                },
+                wcx_115life: {
+                    title: '115生活',
+                    sub_title: '-小程序',
+                    logo: 'icon-logo-cloud',
+                    items: [
+                        {
+                            title: '微信小程序',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_wx_miniprogram.png?v=2',
+                            logo: { icon: 'isl-cloud', platform: 'isp-weixin' },
+                            pic: 'icon-download-types-wxmini',
+                            key: '115xiaochengxu_weixin',
+                            version: '1.0.0',
+                            desc: '微信扫一扫',
+                            download: false,
+                        },
+                        {
+                            title: '支付宝小程序',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_ali_miniprogram.png?v=2',
+                            logo: { icon: 'isl-cloud', platform: 'isp-alipay' },
+                            pic: 'icon-download-types-zfbmini',
+                            version: '1.0.0',
+                            desc: '支付宝扫一扫',
+                            download: false,
+                        },
+                    ]
+                },
+                app_115: {
+                    title: '115极速',
+                    sub_title: '-手机端',
+                    logo: 'icon-logo-wangpan',
+                    items: [
+                        {
+                            title: '安卓端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_wangpan_android_download.png?v=2',
+                            logo: { icon: 'isl-wangpan', platform: 'isp-android' },
+                            pic: 'icon-download-types-android',
+                            key: keyMap.AndroidWangPan,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            title: '苹果端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_wangpan_ios_download.png?v=2',
+                            logo: { icon: 'isl-wangpan', platform: 'isp-ios' },
+                            pic: 'icon-download-types-ios',
+                            key: keyMap.iOSWangPan,
+                            desc: '__version__',
+                            download: true,
+                        },
+                    ]
+                },
+                tv_115: {
+                    title: '115生活',
+                    sub_title: '-电视端',
+                    logo: 'icon-logo-cloud',
+                    items: [
+                        {
+                            title: '安卓电视端',
+                            pic: 'icon-download-types-android-tv',
+                            key: keyMap.AndroidTv,
+                            desc: '__version__',
+                            download: true,
+                        }, {
+                            title: '苹果电视端',
+                            pic: 'icon-download-types-apple-tv',
+                            key: keyMap.AppleTv,
+                            desc: '__version__',
+                            download: true,
+                        },
+                    ]
+                },
+                app_115yun: {
+                    title: '115管理',
+                    sub_title: '-手机端',
+                    logo: 'icon-logo-office',
+                    items: [
+                        {
+                            title: '安卓端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_office_download.png?v=2',
+                            logo: { icon: 'isl-office', platform: 'isp-android' },
+                            pic: 'icon-download-types-android',
+                            key: keyMap.AndroidYun,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            title: '苹果端',
+                            qrcode: '//w.115.com/web/static/images/qrcode_download/qrcode_office_download.png?v=2',
+                            logo: { icon: 'isl-office', platform: 'isp-ios' },
+                            pic: 'icon-download-types-ios',
+                            key: keyMap.iOSYun,
+                            desc: '__version__',
+                            download: true,
+                        },
+                    ]
+                },
+                pc_115browser: {
+                    title: '115浏览器',
+                    sub_title: '-电脑端',
+                    logo: 'icon-logo-browser',
+                    cellStyle: { width: '660px' },
+                    items: [
+                        {
+                            current_device: (vm) => vm.device === 'windows',
+                            title: 'Windows 64位',
+                            pic: 'icon-download-types-windows',
+                            key: keyMap.BrowserWin64,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'windows',
+                            title: 'Windows 32位',
+                            pic: 'icon-download-types-windows',
+                            key: keyMap.BrowserWin,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'macos' && vm.apple_silicon,
+                            title: 'Mac Apple芯片',
+                            pic: 'icon-download-types-ios',
+                            key: keyMap.BrowserMacArm,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'macos' && !vm.apple_silicon,
+                            title: 'Mac Intel芯片',
+                            pic: 'icon-download-types-intel',
+                            key: keyMap.BrowserMac,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'linux',
+                            title: 'Linux 64位',
+                            pic: 'icon-download-types-linux',
+                            key: keyMap.BrowserLinux,
+                            desc: '__version__',
+                            download: true,
+                        },
+                    ]
+                },
+                pc_115life: {
+                    title: '115生活',
+                    sub_title: '-电脑端',
+                    is_test: true,
+                    logo: 'icon-logo-browser',
+                    items: [
+                        {
+                            current_device: (vm) => vm.device === 'windows',
+                            title: 'Windows 32位',
+                            pic: 'icon-download-types-windows',
+                            key: keyMap.LifeClientWin,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'windows',
+                            title: 'Windows 64位',
+                            pic: 'icon-download-types-windows',
+                            key: keyMap.LifeClientWinX64,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'macos' && !vm.apple_silicon,
+                            title: 'Mac Intel芯片',
+                            pic: 'icon-download-types-ios',
+                            key: keyMap.LifeClientMac,
+                            desc: '__version__',
+                            download: true,
+                        },
+                        {
+                            current_device: (vm) => vm.device === 'macos' && vm.apple_silicon,
+                            title: 'Mac Apple芯片',
+                            pic: 'icon-download-types-ios',
+                            key: keyMap.LifeClientMacArm,
+                            desc: '__version__',
+                            download: true,
+                        },
+                    ]
+                },
+            },
+        }
+    },
+    created() {
+
+    },
+    computed: {
+        barGroups: function () {
+            return [
+                {
+                    title: '115生活',
+                    class: 'icon-product-logo ipl-cloud',
+                    apps: [[this.viewGroups.app_115life, this.viewGroups.wcx_115life, this.viewGroups.app_115, this.viewGroups.tv_115]],
+                },
+                {
+                    title: '115管理',
+                    class: 'icon-product-logo ipl-office',
+                    apps: [[this.viewGroups.app_115yun]],
+                },
+                {
+                    title: '115浏览器',
+                    class: 'icon-product-logo ipl-broser',
+                    apps: [[this.viewGroups.pc_115browser]],
+                }
+            ]
+        },
+        dialogViewGroups: function () {
+            if (this.isYun) {
+                return [
+                    [this.viewGroups.app_115yun, this.viewGroups.pc_115browser, this.viewGroups.tv_115],
+                    [this.viewGroups.wcx_115life, this.viewGroups.app_115, this.viewGroups.app_115life,],
+                ];
+            }
+            return [
+                [this.viewGroups.app_115life, this.viewGroups.wcx_115life, this.viewGroups.app_115,this.viewGroups.tv_115],
+                [this.viewGroups.app_115yun, this.viewGroups.pc_115browser],
+            ]
+        }
+    },
+    mounted() {
+        this.getOperatingSystem();
+        this.loadDownInfo();
+    },
+    methods: {
+        loadDownInfo(){
+            let self = this;
+            $.ajax({
+                url:'//appversion.115.com/1/web/1.0/api/getMultiVer',
+                xhrFields:{withCredentials:true},
+                dataType:'json',
+                success:function(json){
+                    if(json.state &&json.data){
+                        self.downInfo = json.data
+                    }
+                }
+            })
+        },
+        showDialog() {
+            this.dialogVisible = true;
+            this.$nextTick(() => {
+                Util.Layer.Center($("#vue_app_down_box"),{})
+            });
+        },
+        getOperatingSystem() {
+            return ''
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (userAgent.includes('windows')) {
+                this.device = 'windows'
+            } else if (userAgent.includes('mac os x')) {
+                // 区分Apple芯片和Intel芯片
+                this.apple_silicon = navigator.platform !== 'MacIntel'
+                this.device = 'macos'
+            } else if (userAgent.includes('linux')) {
+                this.device = 'linux'
+            }
+            return '';
+        },
+        startDownload(downloadType) {
+            var vm = this;
+            $.ajax({
+                url: '//appversion.115.com/1/web/1.0/api/getOneVerson',
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    app_os: this.downInfo[downloadType].app_os,
+                },
+                xhrFields: {
+                    withCredentials: true,
+                },
+                success: function (res) {
+                    if (res.state) {
+                        vm.downloadByUrl(_.get(res, 'data.version_url'));
+                    } else {
+                        $.alertTip(res.message);
+                    }
+                },
+            })
+        },
+        downloadByUrl(url) {
+            if (!url) return false;
+            var eleLink = document.createElement('a');
+            eleLink.href = url.replace(/^http[s]?:/ig, location.protocol);
+            eleLink.target = '_blank';
+            eleLink.style.display = 'none';
+            // 触发点击
+            document.body.appendChild(eleLink);
+            eleLink.click();
+            // 然后移除
+            document.body.removeChild(eleLink);
+        },
+        gotoUrl(url) {
+            window.open(url)
+        }
+    }
+}
+</script>
+
+<style scoped>
+
+</style>

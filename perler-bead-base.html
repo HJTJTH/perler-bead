@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼豆图纸生成器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei',sans-serif;background:#1a1a2e;color:#eee;min-height:100vh;display:flex}
+.panel{width:320px;min-width:320px;background:#16213e;padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:100vh}
+.panel h1{font-size:1.2em;text-align:center;color:#e94560}
+.upload-zone{border:2px dashed #555;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:.2s;background:#0f3460}
+.upload-zone:hover,.upload-zone.drag{border-color:#e94560;background:#1a3a6e}
+.upload-zone .icon{font-size:1.8em}
+.upload-zone .hint{font-size:.72em;color:#888;margin-top:2px}
+.upload-zone img{max-width:100%;max-height:90px;border-radius:8px;margin-top:6px}
+.param-group{background:#0f3460;border-radius:8px;padding:10px}
+.param-group label{display:flex;justify-content:space-between;align-items:center;font-size:.8em;margin-bottom:3px}
+.param-group label span.val{color:#e94560;font-weight:bold;min-width:24px;text-align:right}
+.param-group input[type=range]{width:100%;accent-color:#e94560}
+.aspect-row{display:flex;align-items:center;gap:6px;font-size:.75em}
+.aspect-row input[type=checkbox]{accent-color:#e94560}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.btn{flex:1;min-width:65px;padding:7px 8px;border:none;border-radius:7px;cursor:pointer;font-size:.78em;font-weight:bold;transition:.15s;text-align:center}
+.btn.primary{background:#e94560;color:#fff}
+.btn.primary:hover{background:#ff6b81}
+.btn.secondary{background:#0f3460;color:#ccc;border:1px solid #444}
+.btn.secondary:hover{background:#1a4a80}
+.btn.outline{background:transparent;color:#e94560;border:1px solid #e94560}
+.btn.outline:hover{background:#e9456020}
+.btn.active{background:#e94560!important;color:#fff!important}
+.btn.warn{background:#d08030;color:#fff}
+.btn.warn:hover{background:#e09040}
+.btn.danger{background:#a04040;color:#fff}
+.btn.danger:hover{background:#c06060}
+.btn.green{background:#32a852;color:#fff}
+.btn.green:hover{background:#40c860}
+.preview-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.preview-area .empty{color:#555;font-size:1em;text-align:center}
+.preview-area canvas{border:1px solid #333;border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,.5);max-width:95vw;max-height:60vh}
+.preview-area canvas.editing{cursor:crosshair}
+.legend{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;max-width:800px;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:3px;font-size:.7em;background:#0f3460;padding:2px 6px;border-radius:3px;cursor:pointer;user-select:none}
+.legend-item:hover{background:#1a4a80}
+.legend-item.bg-marked{opacity:.35;text-decoration:line-through}
+.legend-item .swatch{width:12px;height:12px;border-radius:2px;border:1px solid #444}
+.info-bar{font-size:.72em;color:#888;margin-top:4px;text-align:center}
+@media(max-width:700px){body{flex-direction:column}.panel{width:100%;min-width:auto;max-height:none}}
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <h1>🧶 拼豆图纸生成器</h1>
+  <div class="upload-zone" id="uploadZone">
+    <div class="icon">📁</div><div>点击或拖拽上传图片</div>
+    <div class="hint">JPG/PNG/GIF/WebP</div>
+    <img id="thumb" style="display:none">
+  </div>
+  <input type="file" id="fileInput" accept="image/*" hidden>
+
+  <div class="param-group">
+    <label>宽度（颗） <span class="val" id="wVal">40</span></label>
+    <input type="range" id="gridW" min="8" max="100" value="40">
+    <label>高度（颗） <span class="val" id="hVal">40</span></label>
+    <input type="range" id="gridH" min="8" max="100" value="40">
+    <div class="aspect-row">
+      <input type="checkbox" id="lockAspect" checked> 锁定比例
+      <span style="margin-left:auto">颜色 <span class="val" id="cVal">20</span></span>
+    </div>
+    <input type="range" id="numColors" min="4" max="60" value="20" style="margin-top:4px">
+    <label style="margin-top:4px">杂色清理 <span class="val" id="clVal">20</span></label>
+    <input type="range" id="cleanLevel" min="0" max="50" value="20">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn outline" id="btnAuto">🤖 自动配色</button>
+    <button class="btn outline active" id="btnBead">🧶 拼豆色</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn secondary" id="btnEdit">✏️ 编辑</button>
+    <button class="btn danger" id="btnErase">🧹 擦除</button>
+    <button class="btn secondary" id="btnUndo">↩ 撤销</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn primary" id="btnDownload">📥 下载PNG</button>
+    <button class="btn green" id="btnShopList">🛒 采购清单</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn warn" id="btnRemoveBg">🔲 去背景</button>
+    <button class="btn secondary" id="btnPrint">🖨️ 打印</button>
+  </div>
+  <div class="info-bar" id="infoBar">请先上传图片</div>
+  <div class="info-bar" id="editHint" style="color:#f0a040;display:none">✏️ 编辑中：左键点格子换色 | 🧹 擦除中：左键删除格子 | 右键图例标记背景</div>
+</div>
+
+<div class="preview-area" id="previewArea">
+  <div class="empty"><div style="font-size:3em">🧶</div><div>上传图片预览</div></div>
+</div>
+
+<script>
+// ═══ 错误上报 ═══
+window.onerror=function(msg,url,line,col,err){
+  const pa=document.getElementById('previewArea');
+  if(pa)pa.innerHTML='<div style="color:#f44;padding:20px;background:#200;border-radius:8px;max-width:600px"><b>JS 错误</b><br>'+msg+'<br>行:'+line+' 列:'+col+(err&&err.stack?'<br><pre style="font-size:.7em;color:#f88">'+err.stack+'</pre>':'')+'</div>';
+};
+
+// ═══ 色板 ═══
+const BEAD_COLORS=[
+{name:"A01",hex:"#FAF4C8"},
+{name:"A02",hex:"#FFFFD5"},
+{name:"A03",hex:"#FEFF8B"},
+{name:"A04",hex:"#FBED56"},
+{name:"A05",hex:"#F4D738"},
+{name:"A06",hex:"#FEAC4C"},
+{name:"A07",hex:"#FE8B4C"},
+{name:"A08",hex:"#FFDA45"},
+{name:"A09",hex:"#FF995B"},
+{name:"A10",hex:"#F77C31"},
+{name:"A11",hex:"#FFDD99"},
+{name:"A12",hex:"#FE9F72"},
+{name:"A13",hex:"#FFC365"},
+{name:"A14",hex:"#FD543D"},
+{name:"A15",hex:"#FFF365"},
+{name:"A16",hex:"#FFFF9F"},
+{name:"A17",hex:"#FFE36E"},
+{name:"A18",hex:"#FEBE7D"},
+{name:"A19",hex:"#FD7C72"},
+{name:"A20",hex:"#FFD568"},
+{name:"A21",hex:"#FFE395"},
+{name:"A22",hex:"#F4F57D"},
+{name:"A23",hex:"#E6C9B7"},
+{name:"A24",hex:"#F7F8A2"},
+{name:"A25",hex:"#FFD67D"},
+{name:"A26",hex:"#FFC830"},
+{name:"B01",hex:"#E6EE31"},
+{name:"B02",hex:"#63F347"},
+{name:"B03",hex:"#9EF780"},
+{name:"B04",hex:"#5DE035"},
+{name:"B05",hex:"#35E352"},
+{name:"B06",hex:"#65E2A6"},
+{name:"B07",hex:"#3DAF80"},
+{name:"B08",hex:"#1C9C4F"},
+{name:"B09",hex:"#27523A"},
+{name:"B10",hex:"#95D3C2"},
+{name:"B11",hex:"#5D722A"},
+{name:"B12",hex:"#166F41"},
+{name:"B13",hex:"#CAEB7B"},
+{name:"B14",hex:"#ADE946"},
+{name:"B15",hex:"#2E5132"},
+{name:"B16",hex:"#C5ED9C"},
+{name:"B17",hex:"#9BB13A"},
+{name:"B18",hex:"#E6EE49"},
+{name:"B19",hex:"#24B88C"},
+{name:"B20",hex:"#C2F0CC"},
+{name:"B21",hex:"#156A6B"},
+{name:"B22",hex:"#0B3C43"},
+{name:"B23",hex:"#303A21"},
+{name:"B24",hex:"#EEFCA5"},
+{name:"B25",hex:"#4E846D"},
+{name:"B26",hex:"#8D7A35"},
+{name:"B27",hex:"#CCE1AF"},
+{name:"B28",hex:"#9EE5B9"},
+{name:"B29",hex:"#C5E254"},
+{name:"B30",hex:"#E2FCB1"},
+{name:"B31",hex:"#B0E792"},
+{name:"B32",hex:"#9CAB5A"},
+{name:"C01",hex:"#E8FFE7"},
+{name:"C02",hex:"#A9F9FC"},
+{name:"C03",hex:"#A0E2FB"},
+{name:"C04",hex:"#41CCFF"},
+{name:"C05",hex:"#01ACEB"},
+{name:"C06",hex:"#50AAF0"},
+{name:"C07",hex:"#3677D2"},
+{name:"C08",hex:"#0F54C0"},
+{name:"C09",hex:"#324BCA"},
+{name:"C10",hex:"#3EBCE2"},
+{name:"C11",hex:"#28DDDE"},
+{name:"C12",hex:"#1C334D"},
+{name:"C13",hex:"#CDE8FF"},
+{name:"C14",hex:"#D5FDFF"},
+{name:"C15",hex:"#22C4C6"},
+{name:"C16",hex:"#1557A8"},
+{name:"C17",hex:"#04D1F6"},
+{name:"C18",hex:"#1D3344"},
+{name:"C19",hex:"#1887A2"},
+{name:"C20",hex:"#176DAF"},
+{name:"C21",hex:"#BEDDFF"},
+{name:"C22",hex:"#67B4BE"},
+{name:"C23",hex:"#C8E2FF"},
+{name:"C24",hex:"#7CC4FF"},
+{name:"C25",hex:"#A9E5E5"},
+{name:"C26",hex:"#3CAED8"},
+{name:"C27",hex:"#D3DFFA"},
+{name:"C28",hex:"#BBCFED"},
+{name:"C29",hex:"#34488E"},
+{name:"D01",hex:"#AEB4F2"},
+{name:"D02",hex:"#858EDD"},
+{name:"D03",hex:"#2F54AF"},
+{name:"D04",hex:"#182A84"},
+{name:"D05",hex:"#B843C5"},
+{name:"D06",hex:"#AC7BDE"},
+{name:"D07",hex:"#8854B3"},
+{name:"D08",hex:"#E2D3FF"},
+{name:"D09",hex:"#D5B9F8"},
+{name:"D10",hex:"#361851"},
+{name:"D11",hex:"#B9BAE1"},
+{name:"D12",hex:"#DE9AD4"},
+{name:"D13",hex:"#B90095"},
+{name:"D14",hex:"#8B279B"},
+{name:"D15",hex:"#2F1F90"},
+{name:"D16",hex:"#E3E1EE"},
+{name:"D17",hex:"#C4D4F6"},
+{name:"D18",hex:"#A45EC7"},
+{name:"D19",hex:"#D8C3D7"},
+{name:"D20",hex:"#9C32B2"},
+{name:"D21",hex:"#9A009B"},
+{name:"D22",hex:"#333A95"},
+{name:"D23",hex:"#EBDAFC"},
+{name:"D24",hex:"#7786E5"},
+{name:"D25",hex:"#494FC7"},
+{name:"D26",hex:"#DFC2F8"},
+{name:"E01",hex:"#FDD3CC"},
+{name:"E02",hex:"#FEC0DF"},
+{name:"E03",hex:"#FFB7E7"},
+{name:"E04",hex:"#E8649E"},
+{name:"E05",hex:"#F551A2"},
+{name:"E06",hex:"#F13D74"},
+{name:"E07",hex:"#C63478"},
+{name:"E08",hex:"#FFDBE9"},
+{name:"E09",hex:"#E970CC"},
+{name:"E10",hex:"#D33793"},
+{name:"E11",hex:"#FCDDD2"},
+{name:"E12",hex:"#F78FC3"},
+{name:"E13",hex:"#B5006D"},
+{name:"E14",hex:"#FFD1BA"},
+{name:"E15",hex:"#F8C7C9"},
+{name:"E16",hex:"#FFF3EB"},
+{name:"E17",hex:"#FFE2EA"},
+{name:"E18",hex:"#FFC7DB"},
+{name:"E19",hex:"#FEBAD5"},
+{name:"E20",hex:"#D8C7D1"},
+{name:"E21",hex:"#BD9DA1"},
+{name:"E22",hex:"#B785A1"},
+{name:"E23",hex:"#937A8D"},
+{name:"E24",hex:"#E1BCE8"},
+{name:"F01",hex:"#FD957B"},
+{name:"F02",hex:"#FC3D46"},
+{name:"F03",hex:"#F74941"},
+{name:"F04",hex:"#FC283C"},
+{name:"F05",hex:"#E7002F"},
+{name:"F06",hex:"#943630"},
+{name:"F07",hex:"#971937"},
+{name:"F08",hex:"#BC0028"},
+{name:"F09",hex:"#E2677A"},
+{name:"F10",hex:"#8A4526"},
+{name:"F11",hex:"#5A2121"},
+{name:"F12",hex:"#FD4E6A"},
+{name:"F13",hex:"#F35744"},
+{name:"F14",hex:"#FFA9AD"},
+{name:"F15",hex:"#D30022"},
+{name:"F16",hex:"#FEC2A6"},
+{name:"F17",hex:"#E69C79"},
+{name:"F18",hex:"#D37C46"},
+{name:"F19",hex:"#C1444A"},
+{name:"F20",hex:"#CD9391"},
+{name:"F21",hex:"#F7B4C6"},
+{name:"F22",hex:"#FDC0D0"},
+{name:"F23",hex:"#F67E66"},
+{name:"F24",hex:"#E698AA"},
+{name:"F25",hex:"#E54B4F"},
+{name:"G01",hex:"#FFE2CE"},
+{name:"G02",hex:"#FFC4AA"},
+{name:"G03",hex:"#F4C3A5"},
+{name:"G04",hex:"#E1B383"},
+{name:"G05",hex:"#EDB045"},
+{name:"G06",hex:"#E99C17"},
+{name:"G07",hex:"#9D5B3E"},
+{name:"G08",hex:"#753832"},
+{name:"G09",hex:"#E6B483"},
+{name:"G10",hex:"#D98C39"},
+{name:"G11",hex:"#E0C593"},
+{name:"G12",hex:"#FFC890"},
+{name:"G13",hex:"#B7714A"},
+{name:"G14",hex:"#8D614C"},
+{name:"G15",hex:"#FCF9E0"},
+{name:"G16",hex:"#F2D9BA"},
+{name:"G17",hex:"#78524B"},
+{name:"G18",hex:"#FFE4CC"},
+{name:"G19",hex:"#E07935"},
+{name:"G20",hex:"#A94023"},
+{name:"G21",hex:"#B88558"},
+{name:"H01",hex:"#FDFBFF"},
+{name:"H02",hex:"#FEFFFF"},
+{name:"H03",hex:"#B6B1BA"},
+{name:"H04",hex:"#89858C"},
+{name:"H05",hex:"#48464E"},
+{name:"H06",hex:"#2F2B2F"},
+{name:"H07",hex:"#000000"},
+{name:"H08",hex:"#E7D6DB"},
+{name:"H09",hex:"#EDEDED"},
+{name:"H10",hex:"#EEE9EA"},
+{name:"H11",hex:"#CECDD5"},
+{name:"H12",hex:"#FFF5ED"},
+{name:"H13",hex:"#F5ECD2"},
+{name:"H14",hex:"#CFD7D3"},
+{name:"H15",hex:"#98A6A8"},
+{name:"H16",hex:"#1D1414"},
+{name:"H17",hex:"#F1EDED"},
+{name:"H18",hex:"#FFFDF0"},
+{name:"H19",hex:"#F6EFE2"},
+{name:"H20",hex:"#949FA3"},
+{name:"H21",hex:"#FFFBE1"},
+{name:"H22",hex:"#CACAD4"},
+{name:"H23",hex:"#9A9D94"},
+{name:"M01",hex:"#BCC6B8"},
+{name:"M02",hex:"#8AA386"},
+{name:"M03",hex:"#697D80"},
+{name:"M04",hex:"#E3D2BC"},
+{name:"M05",hex:"#D0CCAA"},
+{name:"M06",hex:"#B0A782"},
+{name:"M07",hex:"#B4A497"},
+{name:"M08",hex:"#B38281"},
+{name:"M09",hex:"#A58767"},
+{name:"M10",hex:"#C5B2BC"},
+{name:"M11",hex:"#9F7594"},
+{name:"M12",hex:"#644749"},
+{name:"M13",hex:"#D19066"},
+{name:"M14",hex:"#C77362"},
+{name:"M15",hex:"#757D78"},
+{name:"P01",hex:"#FCF7F8"},
+{name:"P02",hex:"#B0A9AC"},
+{name:"P03",hex:"#AFDCAB"},
+{name:"P04",hex:"#FEA49F"},
+{name:"P05",hex:"#EE8C3E"},
+{name:"P06",hex:"#5FD0A7"},
+{name:"P07",hex:"#EB9270"},
+{name:"P08",hex:"#F0D958"},
+{name:"P09",hex:"#D9D9D9"},
+{name:"P10",hex:"#D9C7EA"},
+{name:"P11",hex:"#F3ECC9"},
+{name:"P12",hex:"#E6EEF2"},
+{name:"P13",hex:"#AACBEF"},
+{name:"P14",hex:"#337680"},
+{name:"P15",hex:"#668575"},
+{name:"P16",hex:"#FEBF45"},
+{name:"P17",hex:"#FEA324"},
+{name:"P18",hex:"#FEB89F"},
+{name:"P19",hex:"#FFFEEC"},
+{name:"P20",hex:"#FEBECF"},
+{name:"P21",hex:"#ECBEBF"},
+{name:"P22",hex:"#E4A89F"},
+{name:"P23",hex:"#A56268"},
+{name:"Q01",hex:"#F2A5E8"},
+{name:"Q02",hex:"#E9EC91"},
+{name:"Q03",hex:"#FFFF00"},
+{name:"Q04",hex:"#FFEBFA"},
+{name:"Q05",hex:"#76CEDE"},
+{name:"R01",hex:"#D50D21"},
+{name:"R02",hex:"#F92F83"},
+{name:"R03",hex:"#FD8324"},
+{name:"R04",hex:"#F8EC31"},
+{name:"R05",hex:"#35C75B"},
+{name:"R06",hex:"#238891"},
+{name:"R07",hex:"#19779D"},
+{name:"R08",hex:"#1A60C3"},
+{name:"R09",hex:"#9A56B4"},
+{name:"R10",hex:"#FFDB4C"},
+{name:"R11",hex:"#FFEBFB"},
+{name:"R12",hex:"#D8D5CE"},
+{name:"R13",hex:"#55514C"},
+{name:"R14",hex:"#9FE4DF"},
+{name:"R15",hex:"#77CEE9"},
+{name:"R16",hex:"#3ECFCA"},
+{name:"R17",hex:"#4A867A"},
+{name:"R18",hex:"#7FCD9D"},
+{name:"R19",hex:"#CDE55D"},
+{name:"R20",hex:"#E8C7B4"},
+{name:"R21",hex:"#AD6F3C"},
+{name:"R22",hex:"#6C372F"},
+{name:"R23",hex:"#FEB872"},
+{name:"R24",hex:"#F3C1C0"},
+{name:"R25",hex:"#C9675E"},
+{name:"R26",hex:"#D293BE"},
+{name:"R27",hex:"#EA8CB1"},
+{name:"R28",hex:"#9C87D6"},
+{name:"T01",hex:"#FFFFFF"},
+{name:"Y01",hex:"#FD6FB4"},
+{name:"Y02",hex:"#FEB481"},
+{name:"Y03",hex:"#D7FAA0"},
+{name:"Y04",hex:"#8BDBFA"},
+{name:"Y05",hex:"#E987EA"},
+{name:"ZG1",hex:"#DAABB3"},
+{name:"ZG2",hex:"#D6AA87"},
+{name:"ZG3",hex:"#C1BD8D"},
+{name:"ZG4",hex:"#96869F"},
+{name:"ZG5",hex:"#8490A6"},
+{name:"ZG6",hex:"#94BFE2"},
+{name:"ZG7",hex:"#E2A9D2"},
+{name:"ZG8",hex:"#AB91C0"}
+];
+
+// ═══ 状态 ═══
+const $=id=>document.getElementById(id);
+let sourceImg=null, aspectRatio=1, currentPalette=BEAD_COLORS;
+let gridData=null; // {w,h,indices,counts,palette,names,cell,bgCells}
+let editMode=false, eraseMode=false, editColor=null;
+let editHistory=[];
+let bgMarkedColors=new Set();
+
+// ═══ DOM ═══
+const uploadZone=$('uploadZone'), fileInput=$('fileInput'), thumb=$('thumb');
+const previewArea=$('previewArea'), infoBar=$('infoBar'), editHint=$('editHint');
+const gridW=$('gridW'), gridH=$('gridH'), lockAspect=$('lockAspect');
+const numColors=$('numColors'), cleanLevel=$('cleanLevel');
+
+// ═══ 上传 ═══
+uploadZone.addEventListener('click',()=>fileInput.click());
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop',e=>{
+  e.preventDefault();uploadZone.classList.remove('drag');
+  const f=e.dataTransfer.files[0];if(f)loadImage(f);
+});
+fileInput.addEventListener('change',()=>{const f=fileInput.files[0];if(f)loadImage(f)});
+
+function loadImage(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      sourceImg=img;aspectRatio=img.width/img.height;
+      thumb.src=e.target.result;thumb.style.display='block';
+      if(lockAspect.checked){gridH.value=Math.max(8,Math.round(gridW.value/aspectRatio));$('hVal').textContent=gridH.value}
+      editHistory=[];bgMarkedColors.clear();exitEditMode();render();
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+// ═══ 滑块 ═══
+[gridW,gridH,numColors,cleanLevel].forEach(s=>{
+  s.addEventListener('input',()=>{
+    $('wVal').textContent=gridW.value;$('hVal').textContent=gridH.value;
+    $('cVal').textContent=numColors.value;$('clVal').textContent=cleanLevel.value;
+    if(lockAspect.checked&&(s===gridW||s===gridH)){
+      if(s===gridW){gridH.value=Math.max(8,Math.round(gridW.value/aspectRatio));$('hVal').textContent=gridH.value}
+      else{gridW.value=Math.max(8,Math.round(gridH.value*aspectRatio));$('wVal').textContent=gridW.value}
+    }
+    render();
+  });
+});
+lockAspect.addEventListener('change',()=>{
+  if(lockAspect.checked&&sourceImg){gridH.value=Math.max(8,Math.round(gridW.value/aspectRatio));$('hVal').textContent=gridH.value;render()}
+});
+
+// ═══ 色板 ═══
+function setPaletteMode(mode){
+  currentPalette=(mode==='bead')?BEAD_COLORS:null;
+  ['btnAuto','btnBead'].forEach(id=>$(id).classList.remove('active'));
+  if(mode==='bead')$('btnBead').classList.add('active');else $('btnAuto').classList.add('active');
+  if(sourceImg)render();
+}
+$('btnAuto').addEventListener('click',()=>setPaletteMode('auto'));
+$('btnBead').addEventListener('click',()=>setPaletteMode('bead'));
+
+// ═══ 编辑模式 ═══
+function exitEditMode(){editMode=false;eraseMode=false;editColor=null;
+  $('btnEdit').classList.remove('active');$('btnErase').classList.remove('active');
+  editHint.style.display='none';const c=previewArea.querySelector('canvas');if(c)c.classList.remove('editing')}
+$('btnEdit').addEventListener('click',()=>{
+  if(!gridData)return;editMode=!editMode;eraseMode=false;
+  $('btnEdit').classList.toggle('active',editMode);$('btnErase').classList.remove('active');
+  editHint.style.display=editMode||eraseMode?'block':'none';
+  const c=previewArea.querySelector('canvas');if(c)c.classList.toggle('editing',editMode||eraseMode)});
+$('btnErase').addEventListener('click',()=>{
+  if(!gridData)return;eraseMode=!eraseMode;editMode=false;
+  $('btnErase').classList.toggle('active',eraseMode);$('btnEdit').classList.remove('active');
+  editHint.style.display=editMode||eraseMode?'block':'none';
+  const c=previewArea.querySelector('canvas');if(c)c.classList.toggle('editing',editMode||eraseMode)});
+
+// ═══ 快照/撤销 ═══
+function saveSnap(){
+  if(!gridData)return;
+  editHistory.push({indices:new Uint8Array(gridData.indices),counts:[...gridData.counts],bgCells:new Set(gridData.bgCells||[])});
+  if(editHistory.length>30)editHistory.shift()}
+$('btnUndo').addEventListener('click',()=>{
+  if(!editHistory.length)return;const snap=editHistory.pop();
+  gridData.indices=snap.indices;gridData.counts=snap.counts;gridData.bgCells=snap.bgCells||new Set();drawPreview()});
+
+// ═══ 去背景 ═══
+$('btnRemoveBg').addEventListener('click',()=>{
+  if(!gridData)return;saveSnap();removeBackground();drawPreview()});
+
+function removeBackground(){
+  const{indices,w,h}=gridData;
+  const bg=new Set(),visited=new Uint8Array(w*h);
+  for(let x=0;x<w;x++){bg.add(indices[x]);bg.add(indices[(h-1)*w+x])}
+  for(let y=0;y<h;y++){bg.add(indices[y*w]);bg.add(indices[y*w+w-1])}
+  bgMarkedColors=new Set(bg);gridData.bgCells=new Set();
+  for(const ci of bg){
+    const q=[];
+    for(let x=0;x<w;x++){if(!visited[x]&&indices[x]===ci){q.push([x,0]);visited[x]=1}if(!visited[(h-1)*w+x]&&indices[(h-1)*w+x]===ci){q.push([x,h-1]);visited[(h-1)*w+x]=1}}
+    for(let y=1;y<h-1;y++){if(!visited[y*w]&&indices[y*w]===ci){q.push([0,y]);visited[y*w]=1}if(!visited[y*w+w-1]&&indices[y*w+w-1]===ci){q.push([w-1,y]);visited[y*w+w-1]=1}}
+    while(q.length){
+      const[cx,cy]=q.shift();gridData.bgCells.add(cy*w+cx);
+      for(const[dx,dy] of[[0,1],[1,0],[0,-1],[-1,0]]){
+        const nx=cx+dx,ny=cy+dy;
+        if(nx>=0&&nx<w&&ny>=0&&ny<h&&!visited[ny*w+nx]&&indices[ny*w+nx]===ci){visited[ny*w+nx]=1;q.push([nx,ny])}
+      }
+    }
+  }
+  const counts=new Array(gridData.palette.length).fill(0);
+  for(let i=0;i<indices.length;i++)if(!gridData.bgCells.has(i))counts[indices[i]]++;
+  gridData.counts=counts;
+}
+
+// ═══ 核心算法 ═══
+function hexToRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
+function closest(rgb,pal){let b=0,bd=Infinity;for(let i=0;i<pal.length;i++){const d=(rgb[0]-pal[i][0])**2+(rgb[1]-pal[i][1])**2+(rgb[2]-pal[i][2])**2;if(d<bd){bd=d;b=i}}return b}
+
+function quantize(px,k){
+  const step=Math.max(1,Math.floor(px.length/k));
+  let c=[];for(let i=0;i<k;i++)c.push([...px[Math.min(i*step,px.length-1)]]);
+  for(let it=0;it<10;it++){
+    const bu=Array.from({length:k},()=>[]);
+    for(const p of px){let b=0,bd=Infinity;for(let i=0;i<k;i++){const d=(p[0]-c[i][0])**2+(p[1]-c[i][1])**2+(p[2]-c[i][2])**2;if(d<bd){bd=d;b=i}}bu[b].push(p)}
+    let ch=false;for(let i=0;i<k;i++){if(!bu[i].length)continue;const a=[0,0,0];for(const p of bu[i]){a[0]+=p[0];a[1]+=p[1];a[2]+=p[2]}a[0]=Math.round(a[0]/bu[i].length);a[1]=Math.round(a[1]/bu[i].length);a[2]=Math.round(a[2]/bu[i].length);if(a[0]!==c[i][0]||a[1]!==c[i][1]||a[2]!==c[i][2])ch=true;c[i]=a}if(!ch)break}
+  return c}
+
+function cleanNoise(indices,w,h,th){
+  const level=th/100*40+3;if(level<3)return indices;
+  const vis=new Uint8Array(w*h),res=new Uint8Array(indices);
+  for(let y=0;y<h;y++){for(let x=0;x<w;x++){
+    if(vis[y*w+x])continue;const ci=res[y*w+x];
+    const reg=[],q=[[x,y]];vis[y*w+x]=1;
+    while(q.length){const[cx,cy]=q.shift();reg.push([cx,cy]);
+      for(const[dx,dy] of[[0,1],[1,0],[0,-1],[-1,0]]){const nx=cx+dx,ny=cy+dy;
+        if(nx>=0&&nx<w&&ny>=0&&ny<h&&!vis[ny*w+nx]&&res[ny*w+nx]===ci){vis[ny*w+nx]=1;q.push([nx,ny])}}}
+    if(reg.length<=level){const nb={};
+      for(const[cx,cy] of reg){for(const[dx,dy] of[[0,1],[1,0],[0,-1],[-1,0]]){const nx=cx+dx,ny=cy+dy;
+        if(nx>=0&&nx<w&&ny>=0&&ny<h&&res[ny*w+nx]!==ci){const nc=res[ny*w+nx];nb[nc]=(nb[nc]||0)+1}}}
+      let bc=ci,bn=0;for(const[c,n]of Object.entries(nb)){if(n>bn){bn=n;bc=parseInt(c)}}if(bn>0)for(const[cx,cy] of reg)res[cy*w+cx]=bc}
+  }}return res}
+
+// ═══ 渲染 ═══
+function render(){
+  if(!sourceImg)return;
+  const w=parseInt(gridW.value),h=parseInt(gridH.value),k=parseInt(numColors.value);
+  const cell=Math.max(8,Math.min(36,800/Math.max(w,h)));
+
+  // 1. 缩小到网格尺寸取色
+  const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;
+  const tctx=tmp.getContext('2d');tctx.drawImage(sourceImg,0,0,w,h);
+  const idata=tctx.getImageData(0,0,w,h);
+  const pixels=[];for(let i=0;i<idata.data.length;i+=4)pixels.push([idata.data[i],idata.data[i+1],idata.data[i+2]]);
+
+  // 2. 量化
+  let pal,names;
+  if(currentPalette){pal=currentPalette.map(c=>hexToRgb(c.hex));names=currentPalette.map(c=>c.name)}
+  else{pal=quantize(pixels,Math.min(k,pixels.length));names=pal.map((_,i)=>'C'+(i+1))}
+  const ranked=pal.map((c,i)=>[i,c[0]*0.299+c[1]*0.587+c[2]*0.114]);
+  ranked.sort((a,b)=>a[1]-b[1]);const si=ranked.map(x=>x[0]);
+  pal=si.map(i=>pal[i]);names=si.map(i=>names[i]);
+
+  // 3. 映射 + 清理 + 计数
+  let indices=new Uint8Array(w*h);for(let i=0;i<pixels.length;i++)indices[i]=closest(pixels[i],pal);
+  const th=parseInt(cleanLevel.value);if(th>0)indices=cleanNoise(indices,w,h,th);
+  const counts=new Array(pal.length).fill(0);for(const idx of indices)counts[idx]++;
+
+  gridData={w,h,indices,palette:pal,names,counts,cell,bgCells:new Set()};
+  bgMarkedColors.clear();editHistory=[];drawPreview()}
+
+// ═══ 绘制预览 ═══
+function drawPreview(){
+  if(!gridData)return;
+  const{w,h,indices,palette,names,counts,cell,bgCells}=gridData;
+  const canvas=document.createElement('canvas');canvas.width=w*cell;canvas.height=h*cell;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#ddd';ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  for(let y=0;y<h;y++){for(let x=0;x<w;x++){
+    const idx=indices[y*w+x],[r,g,b]=palette[idx];
+    ctx.fillStyle=bgCells&&bgCells.has(y*w+x)?`rgba(${r},${g},${b},0.25)`:`rgb(${r},${g},${b})`;
+    ctx.fillRect(x*cell,y*cell,cell-1,cell-1)}}
+
+  for(let y=0;y<=h;y++){const tk=y%10===0?2:0.5;ctx.strokeStyle=y%10===0?'#999':'#ccc';ctx.lineWidth=tk;ctx.beginPath();ctx.moveTo(0,y*cell);ctx.lineTo(w*cell,y*cell);ctx.stroke()}
+  for(let x=0;x<=w;x++){const tk=x%10===0?2:0.5;ctx.strokeStyle=x%10===0?'#999':'#ccc';ctx.lineWidth=tk;ctx.beginPath();ctx.moveTo(x*cell,0);ctx.lineTo(x*cell,h*cell);ctx.stroke()}
+
+  // 编辑点击
+  canvas.addEventListener('click',e=>{
+    if(!editMode&&!eraseMode)return;const rect=canvas.getBoundingClientRect();
+    const sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+    const gx=Math.floor((e.clientX-rect.left)*sx/cell),gy=Math.floor((e.clientY-rect.top)*sy/cell);
+    if(gx<0||gx>=w||gy<0||gy>=h)return;const idx=gy*w+gx;
+    if(eraseMode){saveSnap();const oc=gridData.indices[idx];gridData.bgCells.add(idx);gridData.counts[oc]=Math.max(0,(gridData.counts[oc]||0)-1)}
+    else if(editMode&&editColor!==null){saveSnap();const oc=gridData.indices[idx];gridData.indices[idx]=editColor;gridData.bgCells.delete(idx);gridData.counts[oc]=Math.max(0,(gridData.counts[oc]||0)-1);gridData.counts[editColor]=(gridData.counts[editColor]||0)+1}
+    drawPreview()});
+
+  // 图例
+  let leg='';const total=counts.reduce((a,b)=>a+b,0)-(bgCells?bgCells.size:0);
+  for(let i=0;i<palette.length;i++){if(counts[i]===0)continue;const[r,g,b]=palette[i];
+    const hex='#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+    leg+=`<div class="legend-item${bgMarkedColors.has(i)?' bg-marked':''}" data-ci="${i}">
+      <div class="swatch" style="background:${hex}"></div>${names[i]}<span style="color:#999;font-size:.9em">&times;${counts[i]}</span></div>`}
+
+  previewArea.innerHTML='';previewArea.appendChild(canvas);
+  const ldiv=document.createElement('div');ldiv.className='legend';ldiv.innerHTML=leg;
+  ldiv.querySelectorAll('.legend-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      const ci=parseInt(item.dataset.ci);if(editMode){editColor=ci;const[r,g,b]=palette[ci];$('btnEdit').style.background=`rgb(${r},${g},${b})`}});
+    item.addEventListener('contextmenu',e=>{e.preventDefault();const ci=parseInt(item.dataset.ci);
+      if(bgMarkedColors.has(ci))bgMarkedColors.delete(ci);else bgMarkedColors.add(ci);
+      saveSnap();gridData.bgCells.clear();
+      for(const cii of bgMarkedColors)for(let i=0;i<indices.length;i++)if(indices[i]===cii)gridData.bgCells.add(i);
+      const cn=new Array(palette.length).fill(0);for(let i=0;i<indices.length;i++)if(!gridData.bgCells.has(i))cn[indices[i]]++;
+      gridData.counts=cn;drawPreview()})});
+  previewArea.appendChild(ldiv);
+  infoBar.textContent=`${w}×${h}格 | ${palette.length}色 | ${total}颗`+((bgCells&&bgCells.size)?' (背景'+bgCells.size+')':'')}
+
+// ═══ 下载 ═══
+$('btnDownload').addEventListener('click',()=>{const c=previewArea.querySelector('canvas');if(!c)return;const a=document.createElement('a');a.download='拼豆图纸.png';a.href=c.toDataURL('image/png');a.click()});
+
+// ═══ 采购清单 ═══
+$('btnShopList').addEventListener('click',()=>{
+  if(!gridData)return;const{palette,names,counts,w,h,bgCells}=gridData;
+  const total=counts.reduce((a,b)=>a+b,0)-(bgCells?bgCells.size:0);
+  const ac=palette.map((_,i)=>i).filter(i=>counts[i]>0);
+  const ih=28,iw=420;const c=document.createElement('canvas');c.width=iw;c.height=ac.length*ih+110;
+  const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,iw,c.height);
+  ctx.fillStyle='#1a1a2e';ctx.font='bold 16px Microsoft YaHei';ctx.textAlign='center';ctx.fillText('拼豆采购清单',iw/2,30);
+  ctx.font='12px Microsoft YaHei';ctx.fillStyle='#666';ctx.fillText(`${w}×${h}格 | ${ac.length}色 | ${total}颗`,iw/2,52);
+  ac.forEach((ci,i)=>{const y=72+i*ih;[r,g,b]=palette[ci];
+    ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.fillRect(16,y+2,24,24);ctx.strokeStyle='#ccc';ctx.strokeRect(16,y+2,24,24);
+    ctx.fillStyle='#333';ctx.font='13px Microsoft YaHei';ctx.textAlign='left';
+    ctx.fillText(names[ci],50,y+14);ctx.fillText('×'+counts[ci]+'颗',50,y+30);
+    const pct=counts[ci]/total;ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.fillRect(150,y+8,pct*200,8);
+    ctx.fillStyle='#999';ctx.font='10px Microsoft YaHei';ctx.textAlign='right';ctx.fillText(Math.round(pct*100)+'%',375,y+22)});
+  const a=document.createElement('a');a.download='拼豆采购清单.png';a.href=c.toDataURL('image/png');a.click()});
+
+// ═══ 打印 ═══
+$('btnPrint').addEventListener('click',()=>{const c=previewArea.querySelector('canvas');if(!c)return;const ww=window.open('','_blank','width=900,height=700');ww.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>拼豆图纸</title><style>body{text-align:center;font-family:'Microsoft YaHei',sans-serif;margin:20px}img{max-width:100%;border:1px solid #ccc}@media print{body{margin:0}img{max-width:100%}}h2{color:#e94560}</style></head><body><h2>🧶 拼豆图纸</h2><p>${gridW.value}&times;${gridH.value} | ${numColors.value}色</p><img src="${c.toDataURL()}"><br><button onclick="window.print()" style="margin:12px;padding:8px 24px;font-size:16px;cursor:pointer">🖨️打印</button></body></html>`);ww.document.close()});
+
+// ═══ 快捷键 ═══
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='s'){e.preventDefault();$('btnDownload').click()}if(e.ctrlKey&&e.key==='z'){e.preventDefault();$('btnUndo').click()}if(e.key==='Escape'){e.preventDefault();exitEditMode()}});
+</script>
+</body>
+</html>
